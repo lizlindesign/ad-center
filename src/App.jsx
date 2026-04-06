@@ -1,736 +1,677 @@
-import { useState, useMemo, useCallback } from 'react'
-import './App.css'
+import React, { useState, useMemo, useRef, useEffect } from 'react';
+import { 
+  Search, 
+  Download, 
+  Upload, 
+  Lock, 
+  Clock, 
+  User, 
+  X, 
+  Calendar,
+  ChevronDown, 
+  Plus, 
+  HelpCircle, 
+  Bell, 
+  Check, 
+  CheckSquare, 
+  Square, 
+  Zap, 
+  MousePointer2, 
+  ArrowRight, 
+  Info, 
+  MinusSquare,
+  Sparkles, 
+  Loader2, 
+  Wand2, 
+  Lightbulb, 
+  Trash2, 
+  Eye, 
+  ChevronUp,
+  Slash,
+  Pencil,
+  Filter as FilterIcon
+} from 'lucide-react';
 
-// Icons
-const HomeIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></svg>
-const CampaignIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-5 14H7v-2h7v2zm3-4H7v-2h10v2zm0-4H7V7h10v2z"/></svg>
-const CalendarIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5c-1.11 0-1.99.9-1.99 2L3 20c0 1.1.89 2 2 2h14c1.1 0 2-.9 2-2V6c0-1.1-.9-2-2-2zm0 16H5V10h14v10zm0-12H5V6h14v2z"/></svg>
-const ReportIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 3H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zM9 17H7v-7h2v7zm4 0h-2V7h2v10zm4 0h-2v-4h2v4z"/></svg>
-const SettingsIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19.14 12.94c.04-.31.06-.63.06-.94 0-.31-.02-.63-.06-.94l2.03-1.58c.18-.14.23-.41.12-.61l-1.92-3.32c-.12-.22-.37-.29-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54c-.04-.24-.24-.41-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.04.31-.06.63-.06.94s.02.63.06.94l-2.03 1.58c-.18.14-.23.41-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6c-1.98 0-3.6-1.62-3.6-3.6s1.62-3.6 3.6-3.6 3.6 1.62 3.6 3.6-1.62 3.6-3.6 3.6z"/></svg>
-const LockIcon = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18 8h-1V6c0-2.76-2.24-5-5-5S7 3.24 7 6v2H6c-1.1 0-2 .9-2 2v10c0 1.1.9 2 2 2h12c1.1 0 2-.9 2-2V10c0-1.1-.9-2-2-2zm-6 9c-1.1 0-2-.9-2-2s.9-2 2-2 2 .9 2 2-.9 2-2 2zm3.1-9H8.9V6c0-1.71 1.39-3.1 3.1-3.1 1.71 0 3.1 1.39 3.1 3.1v2z"/></svg>
-const FlashIcon = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></svg>
-const RefreshIcon = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M17.65 6.35C16.2 4.9 14.21 4 12 4c-4.42 0-7.99 3.58-7.99 8s3.57 8 7.99 8c3.73 0 6.84-2.55 7.73-6h-2.08c-.82 2.33-3.04 4-5.65 4-3.31 0-6-2.69-6-6s2.69-6 6-6c1.66 0 3.14.69 4.22 1.78L13 11h7V4l-2.35 2.35z"/></svg>
-const SearchIcon = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M15.5 14h-.79l-.28-.27C15.41 12.59 16 11.11 16 9.5 16 5.91 13.09 3 9.5 3S3 5.91 3 9.5 5.91 16 9.5 16c1.61 0 3.09-.59 4.23-1.57l.27.28v.79l5 4.99L20.49 19l-4.99-5zm-6 0C7.01 14 5 11.99 5 9.5S7.01 5 9.5 5 14 7.01 14 9.5 11.99 14 9.5 14z"/></svg>
-const DownloadIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 9h-4V3H9v6H5l7 7 7-7zM5 18v2h14v-2H5z"/></svg>
-const UploadIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M9 16h6v-6h4l-7-7-7 7h4v6zm-4 2h14v2H5z"/></svg>
-const EyeIcon = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 4.5C7 4.5 2.73 7.61 1 12c1.73 4.39 6 7.5 11 7.5s9.27-3.11 11-7.5c-1.73-4.39-6-7.5-11-7.5zM12 17c-2.76 0-5-2.24-5-5s2.24-5 5-5 5 2.24 5 5-2.24 5-5 5zm0-8c-1.66 0-3 1.34-3 3s1.34 3 3 3 3-1.34 3-3-1.34-3-3-3z"/></svg>
-const CloseIcon = () => <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M19 6.41L17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
-const EditIcon = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M3 17.25V21h3.75L17.81 9.94l-3.75-3.75L3 17.25zM20.71 7.04c.39-.39.39-1.02 0-1.41l-2.34-2.34c-.39-.39-1.02-.39-1.41 0l-1.83 1.83 3.75 3.75 1.83-1.83z"/></svg>
-const DeleteIcon = () => <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></svg>
-const InfoIcon = () => <svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-6h2v6zm0-8h-2V7h2v2z"/></svg>
+const apiKey = ""; 
 
-const navItems = [
-  { icon: HomeIcon, label: 'Home' },
-  { icon: CampaignIcon, label: 'Campaigns' },
-  { icon: ReportIcon, label: 'Reports' },
-  { icon: CalendarIcon, label: 'Inventory Calendar', active: true },
-  { icon: SettingsIcon, label: 'Settings' },
-]
+// Walmart Fiscal Year Constants
+const FY2026_START = new Date('2025-02-02');
+const FY2027_START = new Date('2026-02-01');
+const MOCK_TODAY = new Date('2026-04-06'); // Anchor: Monday, Apr 6, 2026
 
-// Generate 50 DMAs for RON logic
-const dmas = [
-  { id: 1, name: 'New York, NY', code: 'DMA 501' },
-  { id: 2, name: 'Los Angeles, CA', code: 'DMA 803' },
-  { id: 3, name: 'Chicago, IL', code: 'DMA 602' },
-  { id: 4, name: 'Philadelphia, PA', code: 'DMA 504' },
-  { id: 5, name: 'Dallas-Ft. Worth, TX', code: 'DMA 623' },
-  { id: 6, name: 'San Francisco, CA', code: 'DMA 807' },
-  { id: 7, name: 'Boston, MA', code: 'DMA 506' },
-  { id: 8, name: 'Atlanta, GA', code: 'DMA 524' },
-  { id: 9, name: 'Washington, DC', code: 'DMA 511' },
-  { id: 10, name: 'Houston, TX', code: 'DMA 618' },
-  { id: 11, name: 'Detroit, MI', code: 'DMA 505' },
-  { id: 12, name: 'Phoenix, AZ', code: 'DMA 753' },
-  { id: 13, name: 'Seattle, WA', code: 'DMA 819' },
-  { id: 14, name: 'Tampa, FL', code: 'DMA 539' },
-  { id: 15, name: 'Minneapolis, MN', code: 'DMA 613' },
-]
+const CITY_DATA = [
+  "New York, NY", "Los Angeles, CA", "Chicago, IL", "Houston, TX", "Phoenix, AZ", "Philadelphia, PA", "San Antonio, TX", "San Diego, CA", "Dallas, TX", "San Jose, CA",
+  "Austin, TX", "Jacksonville, FL", "Fort Worth, TX", "Columbus, OH", "Charlotte, NC", "Indianapolis, IN", "San Francisco, CA", "Seattle, WA", "Denver, CO", "Oklahoma City, OK",
+  "Nashville, TN", "El Paso, TX", "Washington, DC", "Las Vegas, NV", "Boston, MA", "Portland, OR", "Louisville, KY", "Memphis, TN", "Detroit, MI", "Baltimore, MD",
+  "Milwaukee, WI", "Albuquerque, NM", "Tucson, AZ", "Fresno, CA", "Sacramento, CA", "Mesa, AZ", "Kansas City, MO", "Atlanta, GA", "Colorado Springs, CO", "Omaha, NE",
+  "Raleigh, NC", "Virginia Beach, VA", "Long Beach, CA", "Miami, FL", "Oakland, CA", "Minneapolis, MN", "Tulsa, OK", "Bakersfield, CA", "Tampa, FL", "Wichita, KS"
+];
 
-const advertisers = ['Pepsi-Cola', 'Microsoft', 'Netflix', 'Johnson & Johnson', 'Adidas', 'Nike', 'HP', 'Spotify', 'Dell', 'Amazon', 'Apple', 'Samsung']
-const managers = ['Sarah Chen', 'Mike Johnson', 'Emily Davis', 'James Wilson', 'Lisa Park']
+const DMAs = CITY_DATA.map((name, i) => ({
+  id: (501 + i).toString(),
+  name,
+  stores: Math.floor(Math.random() * 400) + 20,
+  state: name.split(', ')[1],
+  zip: (10000 + i).toString()
+}));
 
-const generateWeeks = () => {
-  const weeks = []
-  const start = new Date('2026-01-05')
-  for (let i = 0; i < 52; i++) {
-    const weekStart = new Date(start)
-    weekStart.setDate(start.getDate() + i * 7)
-    weeks.push({
-      id: i + 1,
-      label: `W${i + 1}`,
-      date: weekStart.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-    })
-  }
-  return weeks
-}
+// Robust Fiscal Week Generator
+const generateFiscalWeeks = (baseDate, fiscalYearStart) => Array.from({ length: 52 }, (_, i) => {
+  const start = new Date(baseDate);
+  start.setDate(start.getDate() + (i * 7));
+  const end = new Date(start);
+  end.setDate(end.getDate() + 6);
+  
+  // Logic: Calculate WM Week # relative to fiscalYearStart (always starts Week 1)
+  const diffInDays = Math.floor((start - fiscalYearStart) / (1000 * 60 * 60 * 24));
+  let totalWeeksFromStart = Math.floor(diffInDays / 7);
+  let weekNum = (totalWeeksFromStart % 52) + 1;
+  if (weekNum <= 0) weekNum += 52;
 
-const weeks = generateWeeks()
+  const formatDateShort = (d) => d.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+  return {
+    id: i + 1, // ID is used for grid reference
+    weekNumber: weekNum, // The display WM Week #
+    label: `WM Week ${weekNum}`,
+    dates: `${formatDateShort(start)} - ${formatDateShort(end)}`,
+    startDate: start,
+    endDate: end
+  };
+});
 
-// Status definitions with colors (matching Figma spec)
-const STATUS = {
-  BOOKED: 'Booked',
-  IO_IN_PROGRESS: 'IO in progress',
-  INTEREST: 'Interest',
-  AVAILABLE: 'Available',
-}
+// Running Weeks: Starts Apr 5, 2026 (Sunday before Apr 6)
+const RUNNING_START = new Date(2026, 3, 5); 
+const WEEKS_FY2026 = generateFiscalWeeks(FY2026_START, FY2026_START);
+const WEEKS_FY2027 = generateFiscalWeeks(FY2027_START, FY2027_START);
+const RUNNING_WEEKS = generateFiscalWeeks(RUNNING_START, FY2027_START);
 
-const statusColors = {
-  [STATUS.BOOKED]: { bg: '#ffe4e6', text: '#be123c', border: '#fda4af' }, // Rose
-  [STATUS.IO_IN_PROGRESS]: { bg: '#fef3c7', text: '#92400e', border: '#fcd34d' }, // Amber
-  [STATUS.INTEREST]: { bg: '#dcfce7', text: '#166534', border: '#86efac' }, // Green
-  [STATUS.AVAILABLE]: { bg: '#f8fafc', text: '#64748b', border: '#e2e8f0' }, // Gray
-}
+const INITIAL_SLOT_DATA = {};
+const PREMIUM_BRANDS = ['NIKE', 'APPLE', 'DELL', 'HP', 'COCA-COLA', 'SONY', 'STARBUCKS', 'AMAZON', 'DISNEY+', 'SPOTIFY', 'PEPSI', 'FORD', 'SAMSUNG', 'LEGO', 'NESTLE'];
+const CATEGORIES = ['Electronics', 'Grocery', 'Health & Wellness', 'Home & Patio', 'Toys', 'Apparel', 'Automotive', 'Beauty'];
+const MANAGERS = ['Sam Walton', 'Alice Glass', 'Robert Lewis', 'Sarah Chen', 'David Brooks'];
 
-// Generate slots with dynamic density (higher for weeks 1-20)
-const generateSlots = () => {
-  const slots = {}
-  dmas.forEach((dma) => {
-    slots[dma.id] = {}
-    weeks.forEach((week) => {
-      // Dynamic density: ~40% for weeks 1-20, ~20% for later weeks
-      const density = week.id <= 20 ? 0.4 : 0.2
-      if (Math.random() < density) {
-        const advertiser = advertisers[Math.floor(Math.random() * advertisers.length)]
-        const manager = managers[Math.floor(Math.random() * managers.length)]
-        
-        // Status distribution
-        const rand = Math.random()
-        let status
-        if (rand < 0.35) status = STATUS.BOOKED
-        else if (rand < 0.55) status = STATUS.IO_IN_PROGRESS
-        else if (rand < 0.75) status = STATUS.INTEREST
-        else status = STATUS.AVAILABLE
+const generateBrandsForType = (type, hasMultiple) => {
+  const count = type === 'booked' ? 1 : (hasMultiple ? Math.floor(Math.random() * 4) + 3 : 1);
+  return Array.from({ length: count }, () => ({
+    id: Math.random(),
+    advertiser: PREMIUM_BRANDS[Math.floor(Math.random() * PREMIUM_BRANDS.length)],
+    product: 'Campaign Plan', cm: 'S. Walton', date: 'Feb 15', status: 'Active'
+  }));
+};
 
-        // Hidden depth: 70% of booked slots have multiple interests
-        const interests = []
-        if (status === STATUS.BOOKED && Math.random() < 0.7) {
-          const numInterests = Math.floor(Math.random() * 3) + 1
-          for (let i = 0; i < numInterests; i++) {
-            interests.push({
-              advertiser: advertisers[Math.floor(Math.random() * advertisers.length)],
-              status: Math.random() > 0.5 ? STATUS.IO_IN_PROGRESS : STATUS.INTEREST,
-            })
+const populateGrid = () => {
+  DMAs.forEach((dma) => {
+    let weekPointer = 1;
+    while (weekPointer <= 52) {
+      const isEarly = weekPointer <= 20;
+      const activityChance = isEarly ? 0.40 : 0.15;
+      if (Math.random() < activityChance) {
+        const span = Math.floor(Math.random() * 2) + 1;
+        const roll = Math.random();
+        const isBooked = roll < 0.375; 
+        const isIo = !isBooked && Math.random() < 0.5;
+        const hasMultiple = Math.random() < 0.5;
+        const brands = generateBrandsForType(isBooked ? 'booked' : 'other', hasMultiple);
+        const duration = `Wk ${weekPointer}-${Math.min(52, weekPointer + span - 1)}`;
+
+        let popularIos = [];
+        let popularInterests = [];
+        if (isBooked && Math.random() < 0.70) {
+            popularIos = generateBrandsForType('other', true).map(b => ({ ...b, weeks: duration }));
+            popularInterests = generateBrandsForType('other', true).map(b => ({ ...b, weeks: duration }));
+        }
+
+        for (let s = 0; s < span && (weekPointer + s) <= 52; s++) {
+          const key = `${dma.id}-${weekPointer + s}`;
+          if (isBooked) {
+            INITIAL_SLOT_DATA[key] = { booked: { ...brands[0], weeks: duration }, ios: popularIos, interests: popularInterests };
+          } else if (isIo) {
+            INITIAL_SLOT_DATA[key] = { booked: null, ios: brands.map(b => ({ ...b, weeks: duration })), interests: [] };
+          } else {
+            INITIAL_SLOT_DATA[key] = { booked: null, ios: [], interests: brands.map(b => ({ ...b, weeks: duration })) };
           }
         }
+        weekPointer += span + 4; 
+      } else weekPointer++;
+    }
+  });
+};
 
-        slots[dma.id][week.id] = {
-          advertiser,
-          status,
-          manager,
-          interests,
-          createdAt: new Date(2026, 0, 1 + Math.floor(Math.random() * 90)).toLocaleDateString(),
-        }
-      }
-    })
-  })
-  return slots
-}
+populateGrid();
 
-const initialSlots = generateSlots()
+// --- External Helper Components ---
+const RadioItem = ({ label, active, disabled, onClick }) => (
+  <button 
+    onClick={onClick} 
+    disabled={disabled}
+    className={`w-full flex items-center gap-3 px-4 py-3 text-[11px] font-bold transition-all ${active ? 'bg-blue-50 text-[#0071CE]' : 'text-slate-700 hover:bg-slate-50'} disabled:opacity-30 disabled:cursor-not-allowed group`}
+  >
+    <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center transition-all ${active ? 'border-[#0071CE]' : 'border-slate-300 group-hover:border-slate-400'}`}>
+      {active && <div className="w-2 h-2 rounded-full bg-[#0071CE]" />}
+    </div>
+    <span className="flex-1 text-left whitespace-nowrap">{label}</span>
+  </button>
+);
 
-// View filter options
-const VIEW_FILTERS = {
-  ALL: 'All DMAs',
-  SELECTED: 'Selected only',
-  AVAILABLE: 'Available only',
-  UNAVAILABLE: 'Unavailable only',
-}
+const DetailRow = ({ rowData }) => (
+  <div className="flex items-center py-4 border-b last:border-0 px-2 hover:bg-slate-50 transition-colors">
+    <div className="w-[20%] font-bold text-sm truncate pr-2 uppercase">{rowData.advertiser}</div>
+    <div className="w-[18%] text-slate-600 text-sm truncate pr-4">{rowData.product}</div>
+    <div className="w-[18%] text-slate-500 text-sm truncate pr-2">{rowData.cm}</div>
+    <div className="w-[12%] text-slate-500 text-sm pr-2">{rowData.date}</div>
+    <div className="w-[15%] text-slate-700 text-sm font-bold">{rowData.weeks}</div>
+    <div className="w-[17%] flex items-center justify-end gap-3 pr-2">
+      <div className="flex items-center gap-1.5">
+          <button className="p-1.5 rounded hover:bg-blue-50 text-slate-400 hover:text-[#0071CE] transition-colors"><Pencil size={14} /></button>
+          <button className="p-1.5 rounded hover:bg-rose-50 text-slate-400 hover:text-rose-500 transition-colors"><Trash2 size={14} /></button>
+      </div>
+    </div>
+  </div>
+);
 
 export default function App() {
-  const [query, setQuery] = useState('')
-  const [viewFilter, setViewFilter] = useState(VIEW_FILTERS.ALL)
-  const [viewFilterOpen, setViewFilterOpen] = useState(false)
-  const [selectedDmas, setSelectedDmas] = useState([])
-  const [hoveredCell, setHoveredCell] = useState(null)
-  const [slots] = useState(initialSlots)
-  
-  // Selection state for week range
-  const [selectionStart, setSelectionStart] = useState(null) // { dmaId, weekId }
-  const [selectionEnd, setSelectionEnd] = useState(null)
-  const [selectedRange, setSelectedRange] = useState(null) // { dmaIds: [], weekRange: [min, max] }
-  
-  // Detail modal
-  const [detailModal, setDetailModal] = useState(null)
-  const [actionTooltip, setActionTooltip] = useState(null)
+  // --- States ---
+  const [selectedDMAs, setSelectedDMAs] = useState(new Set());
+  const [weekRange, setWeekRange] = useState({ start: null, end: null });
+  const [hoverWeek, setHoverWeek] = useState(null);
+  const [isReserving, setIsReserving] = useState(false);
+  const [viewDetailSlot, setViewDetailSlot] = useState(null); 
+  const [searchTerm, setSearchTerm] = useState('');
+  const [searchType, setSearchType] = useState('DMA numbers'); 
+  const [isSearchTypeDropdownOpen, setIsSearchTypeDropdownOpen] = useState(false);
+  const [isFilterDropdownOpen, setIsFilterDropdownOpen] = useState(false);
+  const [isWeekFilterOpen, setIsWeekFilterOpen] = useState(false);
+  const [viewFilter, setViewFilter] = useState('all'); 
+  const [activeCursor, setActiveCursor] = useState({ dmaId: null, weekId: null });
+  const [actionTooltip, setActionTooltip] = useState(null);
+  const [weekFilterMode, setWeekFilterMode] = useState('52running'); 
+  const [customDates, setCustomDates] = useState({ 
+    start: MOCK_TODAY.toISOString().split('T')[0], 
+    end: new Date(MOCK_TODAY.getTime() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] 
+  });
+  const [isIosExpanded, setIsIosExpanded] = useState(false);
+  const [isInterestsExpanded, setIsInterestsExpanded] = useState(false);
 
-  // Current user (for permission logic)
-  const currentUser = 'Liz Harper'
+  // Reserve Form States
+  const [advertiser, setAdvertiser] = useState('');
+  const [reserveStatus, setReserveStatus] = useState('interest'); 
+  const [ioStatus, setIoStatus] = useState('Draft');
+  const [ioName, setIoName] = useState('');
+  const [ioNumber, setIoNumber] = useState('');
+  const [campaignName, setCampaignName] = useState('');
+  const [brandProduct, setBrandProduct] = useState('');
+  const [adGroupName, setAdGroupName] = useState('');
+  const [category, setCategory] = useState('');
+  const [campaignManager, setCampaignManager] = useState('');
+  const [notes, setNotes] = useState('');
 
-  // Calculate the normalized week range [min, max]
-  const getWeekRange = useCallback((start, end) => {
-    if (!start || !end) return null
-    const min = Math.min(start, end)
-    const max = Math.max(start, end)
-    return [min, max]
-  }, [])
+  const searchTypeRef = useRef(null);
+  const filterRef = useRef(null);
+  const weekFilterRef = useRef(null);
 
-  // Check if a range has any booked slots that block selection
-  const isRangeBlocked = useCallback((dmaId, weekMin, weekMax) => {
-    for (let w = weekMin; w <= weekMax; w++) {
-      const slot = slots[dmaId]?.[w]
-      if (slot?.status === STATUS.BOOKED) {
-        return true
+  // --- 1. Memos (Pre-initialized to avoid ReferenceErrors) ---
+  const activeRange = useMemo(() => {
+    if (!weekRange.start) return null;
+    const end = weekRange.end || hoverWeek || weekRange.start;
+    return { min: Math.min(weekRange.start, end), max: Math.max(weekRange.start, end) };
+  }, [weekRange, hoverWeek]);
+
+  const selectionCount = useMemo(() => {
+    if (!selectedDMAs.size) return 0;
+    const wCount = activeRange ? (activeRange.max - activeRange.min + 1) : (weekRange.start ? 1 : 0);
+    return selectedDMAs.size * wCount;
+  }, [selectedDMAs.size, activeRange, weekRange.start]);
+
+  const canReserve = useMemo(() => selectedDMAs.size > 0 && weekRange.end !== null, [selectedDMAs.size, weekRange.end]);
+
+  const isWeekHardBooked = (wid) => {
+    if (selectedDMAs.size === 0) return false;
+    return Array.from(selectedDMAs).some(did => !!INITIAL_SLOT_DATA[`${did}-${wid}`]?.booked);
+  };
+
+  const isWeekDisabled = (wid) => {
+    if (selectedDMAs.size === 0) return false;
+    if (!weekRange.start) return isWeekHardBooked(wid);
+    if (wid === weekRange.start) return isWeekHardBooked(wid);
+    if (wid > weekRange.start) {
+      for (let w = weekRange.start + 1; w <= wid; w++) if (isWeekHardBooked(w)) return true;
+    } else {
+      for (let w = wid; w < weekRange.start; w++) if (isWeekHardBooked(w)) return true;
+    }
+    return false;
+  };
+
+  const isDmaDisabled = (id, targetWeekId = null) => {
+    if (!weekRange.start && targetWeekId === null) return false;
+    const start = weekRange.start || targetWeekId;
+    const end = targetWeekId !== null ? targetWeekId : (weekRange.end || hoverWeek || weekRange.start);
+    const min = Math.min(start, end);
+    const max = Math.max(start, end);
+    for (let w = min; w <= max; w++) if (INITIAL_SLOT_DATA[`${id}-${w}`]?.booked) return true;
+    return false;
+  };
+
+  const isCellSelected = (dmaId, weekId) => {
+    if (!selectedDMAs.has(dmaId) || !activeRange || !weekRange.end) return false;
+    return weekId >= activeRange.min && weekId <= activeRange.max;
+  };
+
+  const isAnyFilterActive = useMemo(() => searchTerm !== '' || viewFilter !== 'all', [searchTerm, viewFilter]);
+
+  const translatedWeeksRange = useMemo(() => {
+    const sDate = new Date(customDates.start);
+    const eDate = new Date(customDates.end);
+    const findWeekIdx = (date) => {
+        const diffInDays = Math.floor((date - FY2027_START) / (1000 * 60 * 60 * 24));
+        return Math.floor(diffInDays / 7) + 1;
+    };
+    const s = findWeekIdx(sDate); const e = findWeekIdx(eDate);
+    if (s <= 0 || e <= 0) return { start: 1, end: 52, label: "Wk ? - ?" };
+    return { start: Math.min(s, e), end: Math.max(s, e), label: `Wk ${Math.min(s, e)} - ${Math.max(s, e)}` };
+  }, [customDates]);
+
+  const weekFilterButtonLabel = useMemo(() => {
+    if (weekFilterMode === '52running') return '52 running weeks';
+    if (weekFilterMode === 'fy2026') return 'FY 2026';
+    if (weekFilterMode === 'fy2027') return 'FY 2027';
+    return translatedWeeksRange.label;
+  }, [weekFilterMode, translatedWeeksRange]);
+
+  const filteredDMAs = useMemo(() => {
+    let result = DMAs;
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase().trim();
+      const parts = term.split(',').map(p => p.trim()).filter(p => p);
+      if (searchType === 'DMA numbers') {
+        result = result.filter(dma => parts.some(part => dma.id.includes(part)));
+      } else {
+        result = result.filter(dma => parts.some(part => dma.name.toLowerCase().includes(part)));
       }
     }
-    return false
-  }, [slots])
+    if (viewFilter === 'selected') result = result.filter(d => selectedDMAs.has(d.id));
+    if (viewFilter === 'available' && weekRange.start) result = result.filter(d => !isDmaDisabled(d.id));
+    if (viewFilter === 'unavailable' && weekRange.start) result = result.filter(d => isDmaDisabled(d.id));
+    return result;
+  }, [searchTerm, searchType, viewFilter, selectedDMAs, weekRange.start, activeRange, hoverWeek]);
 
-  // Check if any DMA in a group has blocked range
-  const isGroupRangeBlocked = useCallback((dmaIds, weekMin, weekMax) => {
-    return dmaIds.some(dmaId => isRangeBlocked(dmaId, weekMin, weekMax))
-  }, [isRangeBlocked])
+  const anyVisibleSelected = useMemo(() => filteredDMAs.some(d => selectedDMAs.has(d.id)), [filteredDMAs, selectedDMAs]);
 
-  // Handle cell click for range selection
-  const handleCellClick = useCallback((dmaId, weekId) => {
-    const slot = slots[dmaId]?.[weekId]
-    
-    // If booked, show detail but don't allow selection
-    if (slot?.status === STATUS.BOOKED) {
-      setDetailModal({ dmaId, weekId, slot })
-      return
-    }
+  const displayWeeks = useMemo(() => {
+    if (weekFilterMode === 'fy2026') return WEEKS_FY2026;
+    if (weekFilterMode === 'fy2027') return WEEKS_FY2027;
+    if (weekFilterMode === '52running') return RUNNING_WEEKS;
+    return WEEKS_FY2027.filter(w => w.id >= translatedWeeksRange.start && w.id <= translatedWeeksRange.end);
+  }, [weekFilterMode, translatedWeeksRange]);
 
-    // If clicking on IO in progress or Interest, can view details
-    if (slot && (slot.status === STATUS.IO_IN_PROGRESS || slot.status === STATUS.INTEREST)) {
-      setDetailModal({ dmaId, weekId, slot })
-    }
+  const selectedStoresCount = useMemo(() => Array.from(selectedDMAs).reduce((acc, id) => acc + (DMAs.find(d => d.id === id)?.stores || 0), 0), [selectedDMAs]);
 
-    // Selection logic
-    if (!selectionStart) {
-      // First click: set start
-      setSelectionStart({ dmaId, weekId })
-      setSelectionEnd(null)
-      setSelectedRange(null)
-      // Auto-select this DMA
-      if (!selectedDmas.includes(dmaId)) {
-        setSelectedDmas([dmaId])
-      }
+  // --- 2. Handlers ---
+  const handleDmaToggle = (id) => {
+    if (isDmaDisabled(id)) return;
+    const newSelected = new Set(selectedDMAs);
+    if (newSelected.has(id)) newSelected.delete(id); else newSelected.add(id);
+    setSelectedDMAs(newSelected);
+  };
+
+  const handleWeekHeaderClick = (weekId) => {
+    if (isWeekDisabled(weekId)) return;
+    if (!weekRange.start || (weekRange.start && weekRange.end)) setWeekRange({ start: weekId, end: null });
+    else setWeekRange(prev => ({ ...prev, end: weekId }));
+  };
+
+  const handleCellClick = (dmaId, weekId) => {
+    if (INITIAL_SLOT_DATA[`${dmaId}-${weekId}`]?.booked) return;
+    // Interaction check
+    if (isDmaDisabled(dmaId, weekId) || isWeekDisabled(weekId)) return;
+    if (!selectedDMAs.has(dmaId)) handleDmaToggle(dmaId);
+    handleWeekHeaderClick(weekId);
+  };
+
+  const handleHeaderCheckboxToggle = () => {
+    const newSelected = new Set(selectedDMAs);
+    if (anyVisibleSelected) {
+      filteredDMAs.forEach(d => newSelected.delete(d.id));
     } else {
-      // Second click: set end and create range
-      const weekRange = getWeekRange(selectionStart.weekId, weekId)
-      const dmaIds = selectedDmas.length > 0 ? selectedDmas : [selectionStart.dmaId]
-      
-      // Check if range is blocked for any selected DMA
-      if (isGroupRangeBlocked(dmaIds, weekRange[0], weekRange[1])) {
-        // Show blocked feedback
-        setSelectionStart(null)
-        setSelectionEnd(null)
-        setSelectedRange(null)
-        return
-      }
-
-      setSelectionEnd({ dmaId: selectionStart.dmaId, weekId })
-      setSelectedRange({
-        dmaIds,
-        weekRange,
-      })
+      filteredDMAs.forEach(d => { if (!isDmaDisabled(d.id)) newSelected.add(d.id); });
     }
-  }, [selectionStart, selectedDmas, slots, getWeekRange, isGroupRangeBlocked])
+    setSelectedDMAs(newSelected);
+  };
 
-  // Clear selection
-  const clearSelection = useCallback(() => {
-    setSelectionStart(null)
-    setSelectionEnd(null)
-    setSelectedRange(null)
-  }, [])
-
-  // Check if a cell is in the selected range
-  const isCellSelected = useCallback((dmaId, weekId) => {
-    if (!selectedRange) return false
-    const { dmaIds, weekRange } = selectedRange
-    return dmaIds.includes(dmaId) && weekId >= weekRange[0] && weekId <= weekRange[1]
-  }, [selectedRange])
-
-  // Check if a cell is in the pending selection (between start and hover)
-  const isCellInPendingSelection = useCallback((dmaId, weekId) => {
-    if (!selectionStart || selectedRange) return false
-    if (hoveredCell) {
-      const range = getWeekRange(selectionStart.weekId, hoveredCell.week)
-      if (!range) return false
-      const dmaIds = selectedDmas.length > 0 ? selectedDmas : [selectionStart.dmaId]
-      return dmaIds.includes(dmaId) && weekId >= range[0] && weekId <= range[1]
-    }
-    return selectionStart.dmaId === dmaId && selectionStart.weekId === weekId
-  }, [selectionStart, selectedRange, hoveredCell, selectedDmas, getWeekRange])
-
-  // Check if week header should show unavailable state
-  const isWeekUnavailable = useCallback((weekId) => {
-    if (selectedDmas.length === 0) return false
-    return selectedDmas.every(dmaId => {
-      const slot = slots[dmaId]?.[weekId]
-      return slot?.status === STATUS.BOOKED
-    })
-  }, [selectedDmas, slots])
-
-  // Check if DMA row should show unavailable state
-  const isDmaUnavailable = useCallback((dmaId) => {
-    if (!selectedRange) return false
-    const { weekRange } = selectedRange
-    return isRangeBlocked(dmaId, weekRange[0], weekRange[1])
-  }, [selectedRange, isRangeBlocked])
-
-  // Check if this is RON (Run of Network)
-  const isRON = useMemo(() => {
-    return selectedDmas.length === dmas.length && selectedRange !== null
-  }, [selectedDmas, selectedRange])
-
-  // Filter DMAs based on view filter
-  const filteredDmas = useMemo(() => {
-    let filtered = dmas.filter((dma) => 
-      dma.name.toLowerCase().includes(query.toLowerCase())
-    )
-
-    switch (viewFilter) {
-      case VIEW_FILTERS.SELECTED:
-        filtered = filtered.filter(dma => selectedDmas.includes(dma.id))
-        break
-      case VIEW_FILTERS.AVAILABLE:
-        filtered = filtered.filter(dma => {
-          if (!selectedRange) return true
-          return !isRangeBlocked(dma.id, selectedRange.weekRange[0], selectedRange.weekRange[1])
-        })
-        break
-      case VIEW_FILTERS.UNAVAILABLE:
-        filtered = filtered.filter(dma => {
-          if (!selectedRange) return false
-          return isRangeBlocked(dma.id, selectedRange.weekRange[0], selectedRange.weekRange[1])
-        })
-        break
-      default:
-        break
-    }
-
-    return filtered
-  }, [query, viewFilter, selectedDmas, selectedRange, isRangeBlocked])
-
-  const toggleDma = (id) => {
-    setSelectedDmas((prev) =>
-      prev.includes(id) ? prev.filter((d) => d !== id) : [...prev, id]
-    )
-    // Clear range when changing DMA selection
-    clearSelection()
-  }
-
-  const toggleAll = () => {
-    if (selectedDmas.length === dmas.length) {
-      setSelectedDmas([])
-    } else {
-      setSelectedDmas(dmas.map((d) => d.id))
-    }
-    clearSelection()
-  }
-
-  const getSlotIcon = (slot) => {
-    if (slot.status === STATUS.BOOKED) return <LockIcon />
-    if (slot.status === STATUS.IO_IN_PROGRESS) return <FlashIcon />
-    return <RefreshIcon />
-  }
-
-  // Handle action click with permission check
-  const handleActionClick = (action, slot) => {
-    if (slot.manager !== currentUser) {
-      setActionTooltip(action)
-      setTimeout(() => setActionTooltip(null), 2000)
-    } else {
-      // Execute action
-      console.log(`Executing ${action} for slot`)
-      setDetailModal(null)
-    }
-  }
-
-  // Visible weeks (show 12 at a time, can scroll)
-  const [weekOffset, setWeekOffset] = useState(0)
-  const visibleWeeks = weeks.slice(weekOffset, weekOffset + 12)
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (searchTypeRef.current && !searchTypeRef.current.contains(e.target)) setIsSearchTypeDropdownOpen(false);
+      if (filterRef.current && !filterRef.current.contains(e.target)) setIsFilterDropdownOpen(false);
+      if (weekFilterRef.current && !weekFilterRef.current.contains(e.target)) setIsWeekFilterOpen(false);
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
-    <div className="app-shell">
-      {/* Top Navbar */}
-      <header className="top-navbar">
-        <div className="navbar-brand">
-          <span className="walmart-logo">Walmart</span>
-          <span className="divider">|</span>
-          <span>Ad Center</span>
-        </div>
-        <div className="navbar-actions">
-          <button className="navbar-btn">Help</button>
-          <div className="avatar">LH</div>
-        </div>
-      </header>
+    <div className="flex h-screen bg-slate-50 font-sans text-slate-900 overflow-hidden relative">
+      <aside className="w-16 flex flex-col items-center py-6 bg-[#004F91] border-r border-slate-200 gap-8 z-50 shrink-0 shadow-lg">
+        <div className="w-10 h-10 bg-[#FFC220] rounded-xl flex items-center justify-center text-[#004F91] font-bold text-lg shadow-inner">W</div>
+        <nav className="flex flex-col gap-6 text-white/60">
+          <Calendar className="text-white cursor-pointer" size={22} /><User size={22} /><Bell size={22} /><div className="mt-auto"><HelpCircle size={22} /></div>
+        </nav>
+      </aside>
 
-      {/* Main Layout */}
-      <div className="main-layout">
-        {/* Left Nav */}
-        <aside className="side-nav">
-          {navItems.map((item, index) => (
-            <button
-              key={index}
-              className={`nav-icon ${item.active ? 'active' : ''}`}
-              title={item.label}
-            >
-              <item.icon />
-            </button>
-          ))}
-        </aside>
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
+        <header className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between shrink-0 z-40">
+          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Inventory Calendar</h1>
+          <div className="flex items-center gap-4 text-sm font-medium text-slate-500"><User size={18} className="text-slate-400" /><span>Sam Walton</span><ChevronDown size={14} /></div>
+        </header>
 
-        {/* Content */}
-        <main className="content">
-          {/* Page Header */}
-          <div className="page-header">
-            <h1>Inventory Calendar</h1>
-            {isRON && (
-              <span className="ron-badge">RON (Run of Network)</span>
-            )}
-          </div>
-
-          {/* Toolbar */}
-          <div className="toolbar">
-            <div className="toolbar-left">
-              <div className="search-box">
-                <SearchIcon />
-                <input
-                  type="text"
-                  placeholder="Search DMAs..."
-                  value={query}
-                  onChange={(e) => setQuery(e.target.value)}
-                />
-              </div>
-
-              {/* View DMA by filter */}
-              <div className="filter-dropdown">
-                <button 
-                  className="filter-btn"
-                  onClick={() => setViewFilterOpen(!viewFilterOpen)}
-                >
-                  {viewFilter}
-                  <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                    <path d="M7 10l5 5 5-5z" />
-                  </svg>
-                </button>
-                {viewFilterOpen && (
-                  <div className="filter-menu">
-                    {Object.values(VIEW_FILTERS).map((filter) => (
-                      <button
-                        key={filter}
-                        className={`filter-option ${viewFilter === filter ? 'active' : ''}`}
-                        onClick={() => {
-                          setViewFilter(filter)
-                          setViewFilterOpen(false)
-                        }}
-                      >
-                        {filter}
-                      </button>
-                    ))}
-                  </div>
-                )}
-              </div>
-
-              <button className="filter-btn">
-                52 running weeks
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M7 10l5 5 5-5z" />
-                </svg>
+        <div className="bg-white border-b border-slate-200 px-8 py-3 flex items-center justify-between shrink-0 z-[300] shadow-sm gap-6 overflow-visible">
+          <div className="flex-1 flex items-center bg-slate-100 border border-slate-200 rounded-xl h-11 relative">
+            <div className="relative h-full flex items-center" ref={searchTypeRef}>
+              <button onClick={() => setIsSearchTypeDropdownOpen(!isSearchTypeDropdownOpen)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-600 border-r border-slate-200 h-full rounded-l-xl hover:bg-slate-200 transition-colors">
+                <Search size={16} />
+                {/* Prefix font weight fixed to normal */}
+                <span className="whitespace-nowrap font-normal text-slate-500">Search by <span className="font-bold text-slate-700">{searchType}</span></span>
+                <ChevronDown size={14} className={isSearchTypeDropdownOpen ? 'rotate-180' : ''} />
               </button>
-
-              <button className="icon-btn"><DownloadIcon /></button>
-              <button className="icon-btn"><UploadIcon /></button>
-            </div>
-
-            <div className="toolbar-right">
-              {selectedRange && (
-                <button className="secondary-btn" onClick={clearSelection}>
-                  Clear Selection
-                </button>
-              )}
-              <button className="primary-btn">+ Add Inventory</button>
-            </div>
-          </div>
-
-          {/* Status Legend */}
-          <div className="status-legend">
-            {Object.entries(statusColors).map(([status, colors]) => (
-              <span
-                key={status}
-                className="status-badge"
-                style={{
-                  backgroundColor: colors.bg,
-                  color: colors.text,
-                  borderColor: colors.border,
-                }}
-              >
-                {status}
-              </span>
-            ))}
-
-            <div className="legend-spacer" />
-
-            {selectedDmas.length > 0 && (
-              <>
-                <span className="selection-info">
-                  {selectedDmas.length} DMA{selectedDmas.length > 1 ? 's' : ''} selected
-                </span>
-                {selectedRange && (
-                  <span className="selection-info">
-                    W{selectedRange.weekRange[0]} - W{selectedRange.weekRange[1]}
-                  </span>
-                )}
-              </>
-            )}
-          </div>
-
-          {/* Week Navigation */}
-          <div className="week-navigation">
-            <button 
-              className="nav-arrow"
-              disabled={weekOffset === 0}
-              onClick={() => setWeekOffset(Math.max(0, weekOffset - 4))}
-            >
-              ← Earlier
-            </button>
-            <span className="week-range-label">
-              Showing W{weekOffset + 1} - W{Math.min(weekOffset + 12, 52)}
-            </span>
-            <button 
-              className="nav-arrow"
-              disabled={weekOffset >= 40}
-              onClick={() => setWeekOffset(Math.min(40, weekOffset + 4))}
-            >
-              Later →
-            </button>
-          </div>
-
-          {/* Data Table */}
-          <div className="table-container">
-            <table className="inventory-table">
-              <thead>
-                <tr>
-                  <th className="sticky-col col-checkbox">
-                    <input
-                      type="checkbox"
-                      checked={selectedDmas.length === dmas.length}
-                      onChange={toggleAll}
-                    />
-                  </th>
-                  <th className="sticky-col col-dma">
-                    <div className="dma-header">
-                      <span>All DMAs</span>
-                      <span className="dma-badge">{dmas.length}</span>
-                      <EyeIcon />
-                    </div>
-                  </th>
-                  {visibleWeeks.map((week) => {
-                    const unavailable = isWeekUnavailable(week.id)
-                    return (
-                      <th 
-                        key={week.id} 
-                        className={`col-week ${unavailable ? 'unavailable' : ''}`}
-                      >
-                        <div className="week-header">
-                          {unavailable && <LockIcon />}
-                          <span className="week-label">{week.label}</span>
-                          <span className="week-date">{week.date}</span>
-                        </div>
-                      </th>
-                    )
-                  })}
-                </tr>
-              </thead>
-              <tbody>
-                {filteredDmas.map((dma) => {
-                  const rowUnavailable = isDmaUnavailable(dma.id)
-                  return (
-                    <tr key={dma.id} className={rowUnavailable ? 'row-unavailable' : ''}>
-                      <td className="sticky-col col-checkbox">
-                        <input
-                          type="checkbox"
-                          checked={selectedDmas.includes(dma.id)}
-                          onChange={() => toggleDma(dma.id)}
-                        />
-                      </td>
-                      <td className={`sticky-col col-dma ${rowUnavailable ? 'unavailable' : ''}`}>
-                        <div className="dma-cell">
-                          {rowUnavailable && <LockIcon />}
-                          <div>
-                            <span className="dma-name">{dma.name}</span>
-                            <span className="dma-code">{dma.code}</span>
-                          </div>
-                        </div>
-                      </td>
-                      {visibleWeeks.map((week) => {
-                        const slot = slots[dma.id]?.[week.id]
-                        const isHovered = hoveredCell?.dma === dma.id && hoveredCell?.week === week.id
-                        const isSelected = isCellSelected(dma.id, week.id)
-                        const isPending = isCellInPendingSelection(dma.id, week.id)
-                        const isBooked = slot?.status === STATUS.BOOKED
-
-                        return (
-                          <td
-                            key={week.id}
-                            className={`
-                              col-week slot-cell 
-                              ${slot ? `has-slot status-${slot.status.toLowerCase().replace(/\s+/g, '-')}` : ''} 
-                              ${isHovered ? 'hovered' : ''} 
-                              ${isSelected ? 'selected' : ''} 
-                              ${isPending ? 'pending' : ''}
-                              ${isBooked ? 'booked' : ''}
-                            `}
-                            onClick={() => handleCellClick(dma.id, week.id)}
-                            onMouseEnter={() => setHoveredCell({ dma: dma.id, week: week.id })}
-                            onMouseLeave={() => setHoveredCell(null)}
-                          >
-                            {slot && (
-                              <div className="slot-content">
-                                <span className="slot-icon">{getSlotIcon(slot)}</span>
-                                <span className="slot-advertiser">{slot.advertiser}</span>
-                                {slot.interests?.length > 0 && (
-                                  <span className="interest-count">+{slot.interests.length}</span>
-                                )}
-                              </div>
-                            )}
-                            {isHovered && slot && (
-                              <div className="tooltip">
-                                <div className="tooltip-row">
-                                  <strong>{slot.advertiser}</strong>
-                                </div>
-                                <div className="tooltip-row">
-                                  Status:{' '}
-                                  <span style={{ color: statusColors[slot.status].text }}>
-                                    {slot.status}
-                                  </span>
-                                </div>
-                                <div className="tooltip-row">Manager: {slot.manager}</div>
-                                {slot.interests?.length > 0 && (
-                                  <div className="tooltip-row">
-                                    +{slot.interests.length} additional interest{slot.interests.length > 1 ? 's' : ''}
-                                  </div>
-                                )}
-                                {isBooked && (
-                                  <div className="tooltip-row tooltip-warning">
-                                    <LockIcon /> Booked - Cannot select
-                                  </div>
-                                )}
-                              </div>
-                            )}
-                          </td>
-                        )
-                      })}
-                    </tr>
-                  )
-                })}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Instructions */}
-          <div className="instructions">
-            <InfoIcon />
-            <span>Click a cell to start selection, then click another cell in the same row to select a week range. Booked slots (rose) cannot be selected.</span>
-          </div>
-        </main>
-      </div>
-
-      {/* Detail Modal */}
-      {detailModal && (
-        <>
-          <div className="modal-backdrop" onClick={() => setDetailModal(null)} />
-          <div className="detail-modal">
-            <div className="modal-header">
-              <h3>{detailModal.slot.advertiser}</h3>
-              <button className="close-btn" onClick={() => setDetailModal(null)}>
-                <CloseIcon />
-              </button>
-            </div>
-            
-            <div className="modal-body">
-              <div className="detail-row">
-                <span className="detail-label">Status</span>
-                <span 
-                  className="detail-value status-chip"
-                  style={{
-                    backgroundColor: statusColors[detailModal.slot.status].bg,
-                    color: statusColors[detailModal.slot.status].text,
-                  }}
-                >
-                  {detailModal.slot.status}
-                </span>
-              </div>
-              
-              <div className="detail-row">
-                <span className="detail-label">DMA</span>
-                <span className="detail-value">
-                  {dmas.find(d => d.id === detailModal.dmaId)?.name}
-                </span>
-              </div>
-              
-              <div className="detail-row">
-                <span className="detail-label">Week</span>
-                <span className="detail-value">
-                  {weeks.find(w => w.id === detailModal.weekId)?.label} ({weeks.find(w => w.id === detailModal.weekId)?.date})
-                </span>
-              </div>
-              
-              <div className="detail-row">
-                <span className="detail-label">Campaign Manager</span>
-                <span className="detail-value">{detailModal.slot.manager}</span>
-              </div>
-              
-              <div className="detail-row">
-                <span className="detail-label">Created</span>
-                <span className="detail-value">{detailModal.slot.createdAt}</span>
-              </div>
-
-              {detailModal.slot.interests?.length > 0 && (
-                <div className="interests-section">
-                  <h4>Additional Interests ({detailModal.slot.interests.length})</h4>
-                  {detailModal.slot.interests.map((interest, idx) => (
-                    <div key={idx} className="interest-item">
-                      <span>{interest.advertiser}</span>
-                      <span 
-                        className="status-chip small"
-                        style={{
-                          backgroundColor: statusColors[interest.status].bg,
-                          color: statusColors[interest.status].text,
-                        }}
-                      >
-                        {interest.status}
-                      </span>
-                    </div>
+              {isSearchTypeDropdownOpen && (
+                <div className="absolute top-[110%] left-0 w-56 bg-white border border-slate-200 rounded-lg shadow-2xl z-[500] overflow-hidden animate-in fade-in zoom-in-95">
+                  {['DMA numbers', 'DMA names'].map(type => (
+                    <button key={type} onClick={() => { setSearchType(type); setIsSearchTypeDropdownOpen(false); setSearchTerm(''); }} className={`w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-blue-50 transition-colors ${searchType === type ? 'text-[#0071CE] bg-blue-50 font-bold' : ''}`}>{type}</button>
                   ))}
                 </div>
               )}
             </div>
+            <input type="text" placeholder={searchType === 'DMA numbers' ? 'e.g. 501, 803...' : 'e.g. New York, Chicago...'} className="flex-1 bg-transparent px-4 py-2.5 text-sm outline-none font-medium text-slate-800 h-full" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
+            {searchTerm && <button onClick={() => setSearchTerm('')} className="p-2 text-slate-400 hover:text-slate-600 transition-colors mr-1"><X size={14} strokeWidth={3} /></button>}
+          </div>
 
-            <div className="modal-actions">
-              <div className="action-btn-wrapper">
-                <button 
-                  className="action-btn"
-                  onClick={() => handleActionClick('Edit', detailModal.slot)}
-                >
-                  <EditIcon /> Edit
-                </button>
-                {actionTooltip === 'Edit' && (
-                  <div className="permission-tooltip">
-                    Only {detailModal.slot.manager} can edit this booking
+          <div className="flex items-center gap-3 h-full overflow-visible">
+            <div className="relative h-full" ref={weekFilterRef}>
+              <button onClick={() => setIsWeekFilterOpen(!isWeekFilterOpen)} className={`flex items-center gap-2 px-4 h-full border rounded-lg transition-all text-sm font-bold ${isWeekFilterOpen ? 'border-[#0071CE] text-[#0071CE] bg-blue-50 shadow-sm' : 'border-slate-300 text-slate-600 hover:bg-slate-50'}`}>
+                {weekFilterButtonLabel} <ChevronDown size={14} className={isWeekFilterOpen ? 'rotate-180' : ''} />
+              </button>
+              {isWeekFilterOpen && (
+                <div className="absolute top-full right-0 mt-2 w-[480px] bg-white border border-slate-200 rounded-xl shadow-2xl z-[600] p-6 animate-in fade-in zoom-in-95">
+                  <div className="space-y-5">
+                    {[{ id: '52running', label: '52 running weeks' }, { id: 'fy2026', label: 'FY 2026' }, { id: 'fy2027', label: 'FY 2027' }, { id: 'custom', label: 'Custom week range' }].map((opt) => (
+                      <label key={opt.id} className="flex items-center gap-4 cursor-pointer group">
+                        <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center transition-all ${weekFilterMode === opt.id ? 'border-[#0071CE]' : 'border-slate-300'}`}>{weekFilterMode === opt.id && <div className="w-2.5 h-2.5 rounded-full bg-[#0071CE]" />}</div>
+                        <input type="radio" className="sr-only" checked={weekFilterMode === opt.id} onChange={() => setWeekFilterMode(opt.id)} />
+                        <span className="text-sm font-black text-slate-800">{opt.label}</span>
+                      </label>
+                    ))}
+                    <div className={`grid grid-cols-2 gap-6 pt-2 transition-opacity duration-200 ${weekFilterMode === 'custom' ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-tight">Start week</label>
+                          <div className="group relative"><Info size={12} className="text-slate-300 hover:text-[#0071CE] cursor-help" /><div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-900 text-white text-[10px] rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[700]">Click any day to select the week.</div></div>
+                        </div>
+                        <input type="date" value={customDates.start} onChange={(e) => setCustomDates({...customDates, start: e.target.value})} className="w-full h-11 px-3 border border-slate-300 rounded-lg text-sm font-bold outline-none focus:border-[#0071CE]" />
+                      </div>
+                      <div className="space-y-1.5">
+                        <div className="flex items-center gap-1.5">
+                          <label className="text-[10px] font-black text-slate-400 uppercase tracking-tight">End week</label>
+                          <div className="group relative"><Info size={12} className="text-slate-300 hover:text-[#0071CE] cursor-help" /><div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 w-48 p-2 bg-slate-900 text-white text-[10px] rounded shadow-xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[700]">Click any day to select the week.</div></div>
+                        </div>
+                        <input type="date" value={customDates.end} onChange={(e) => setCustomDates({...customDates, end: e.target.value})} className="w-full h-11 px-3 border border-slate-300 rounded-lg text-sm font-bold outline-none focus:border-[#0071CE]" />
+                      </div>
+                    </div>
+                    <div className="text-[11px] font-bold text-slate-400 leading-none h-4">
+                        {weekFilterMode === 'custom' ? `Walmart ${translatedWeeksRange.label}` : ''}
+                    </div>
+                    <div className="flex justify-end gap-4 pt-4 border-t"><button onClick={() => setIsWeekFilterOpen(false)} className="text-sm font-bold text-slate-500 hover:text-slate-700 transition-colors">Cancel</button><button onClick={() => setIsWeekFilterOpen(false)} className="px-8 py-2.5 bg-[#0071CE] text-white rounded-full font-black text-sm hover:bg-[#004F91] transition-all shadow-md">Apply</button></div>
                   </div>
-                )}
+                </div>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5 h-full relative">
+                <button onMouseEnter={(e) => setActionTooltip({ tip: 'Upload CSV', rect: e.currentTarget.getBoundingClientRect() })} onMouseLeave={() => setActionTooltip(null)} className="p-2.5 text-slate-500 border border-slate-300 rounded-lg hover:bg-blue-50 transition-all"><Upload size={18} /></button>
+                <button onMouseEnter={(e) => setActionTooltip({ tip: 'Download CSV', rect: e.currentTarget.getBoundingClientRect() })} onMouseLeave={() => setActionTooltip(null)} className="p-2.5 text-slate-500 border border-slate-300 rounded-lg hover:bg-blue-50 transition-all"><Download size={18} /></button>
+            </div>
+            <button onClick={() => setIsReserving(true)} disabled={!canReserve} className={`px-10 h-full rounded-xl text-sm font-black transition-all shadow-lg min-w-[180px] ${canReserve ? 'bg-[#0071CE] text-white shadow-[#0071CE]/20 hover:bg-[#004F91]' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}>
+                Reserve {selectionCount > 0 ? selectionCount : ''} slots
+            </button>
+          </div>
+        </div>
+
+        {/* Legend / Selection Summary Bar */}
+        <div className="px-8 py-3 bg-white border-b border-slate-100 flex items-center justify-between shrink-0 z-20 overflow-visible">
+          <div className="flex items-center gap-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">
+            <div className="flex items-center gap-2.5"><div className="w-5 h-5 rounded bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600 font-bold"><Lock size={12} strokeWidth={3} /></div>Booked</div>
+            <div className="flex items-center gap-2.5"><div className="w-5 h-5 rounded bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600 font-bold"><Clock size={12} strokeWidth={3} /></div>IO in progress</div>
+            <div className="flex items-center gap-2.5"><div className="w-5 h-5 rounded bg-green-50 border border-green-200 flex items-center justify-center text-green-700 font-bold"><Zap size={12} fill="currentColor" className="fill-green-700/20" /></div>Interest</div>
+            <div className="flex items-center gap-2.5"><div className="w-5 h-5 rounded bg-slate-50 border border-slate-300 flex items-center justify-center text-slate-400 font-bold"><Square size={12} strokeWidth={3} /></div>Blank</div>
+          </div>
+
+          <div className="flex items-center gap-2 flex-wrap animate-in fade-in slide-in-from-right-2">
+            {selectedDMAs.size > 0 && (<div className="flex items-center bg-[#E5F1FF] text-[#0071CE] px-3 py-1.5 rounded-full text-xs font-black border border-blue-100 shadow-sm">{selectedDMAs.size} DMAs • {selectedStoresCount.toLocaleString()} stores<button onClick={() => setSelectedDMAs(new Set())} className="ml-2 hover:text-[#004F91] transition-colors"><X size={14} strokeWidth={4} /></button></div>)}
+            {weekRange.start && (
+                <div className="flex items-center bg-[#E5F1FF] text-[#0071CE] px-3 py-1.5 rounded-full text-xs font-black border border-blue-100 shadow-sm">
+                    WM Week {activeRange?.min}{activeRange && activeRange.max > activeRange.min ? ` - ${activeRange.max}` : ''}
+                    <button onClick={() => setWeekRange({start:null, end:null})} className="ml-2 hover:text-[#004F91] transition-colors"><X size={14} strokeWidth={4} /></button>
+                </div>
+            )}
+            {(selectedDMAs.size > 0 || weekRange.start || viewFilter !== 'all') && (<button onClick={() => { setSelectedDMAs(new Set()); setWeekRange({ start: null, end: null }); setViewFilter('all'); }} className="text-[11px] font-black uppercase text-rose-600 hover:text-rose-800 underline ml-2 transition-all">Clear all</button>)}
+          </div>
+        </div>
+
+        {/* Grid Area */}
+        <div className="flex-1 overflow-auto bg-white" onMouseLeave={() => setActiveCursor({ dmaId: null, weekId: null })}>
+          <table className="border-separate border-spacing-0 w-full relative table-fixed">
+            <thead>
+              <tr className="sticky top-0 z-[200]">
+                <th className={`sticky left-0 z-[210] bg-[#F1F5F9] border-b border-r border-slate-200 p-0 text-left w-[360px] shadow-[4px_0_6px_-2px_rgba(0,0,0,0.1)] transition-colors ${activeCursor.dmaId ? 'bg-[#E5EAF5]' : ''}`}>
+                  <div className="flex items-center gap-3 p-4 overflow-visible relative">
+                    <button onClick={handleHeaderCheckboxToggle} className="text-slate-400 hover:text-[#0071CE] transition-colors shrink-0">{selectedDMAs.size > 0 ? <MinusSquare size={18} className="text-[#0071CE]" /> : <Square size={18} />}</button>
+                    <div className="flex items-center gap-2"><span className="text-xs font-black text-slate-500 uppercase tracking-widest">{isAnyFilterActive ? "Filtered DMAs" : "All DMAs"}</span>
+                    <span className="bg-slate-200 text-slate-700 px-2 py-0.5 rounded text-[11px] font-black leading-none border border-slate-300/50">{filteredDMAs.length}</span></div>
+                    <div className="relative ml-auto shrink-0" ref={filterRef}>
+                      <button onMouseEnter={(e) => setActionTooltip({ tip: 'View DMA by...', rect: e.currentTarget.getBoundingClientRect() })} onMouseLeave={() => setActionTooltip(null)} onClick={() => setIsFilterDropdownOpen(!isFilterDropdownOpen)} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all ${viewFilter !== 'all' ? 'bg-blue-50 text-[#0071CE] border border-blue-100 shadow-sm' : 'hover:bg-slate-200 text-slate-400'}`}>
+                        {viewFilter !== 'all' && <span className="text-[10px] font-black uppercase tracking-tight mr-1">{viewFilter}</span>}<Eye size={16} strokeWidth={3} />
+                      </button>
+                      {isFilterDropdownOpen && (
+                        <div className="absolute top-full right-0 mt-2 w-64 bg-white border border-slate-200 rounded-lg shadow-2xl z-[500] animate-in fade-in zoom-in-95 overflow-visible">
+                          <div className="px-4 py-4 border-b bg-slate-50 flex items-center justify-between">
+                            <div className="flex items-center gap-2 font-black text-sm uppercase text-slate-600 tracking-tight"><Eye size={16} /> VIEW DMA by</div>
+                            <div className="group relative flex items-center">
+                              <Info size={14} className="text-slate-400 hover:text-[#0071CE] cursor-help" />
+                              <div className="fixed z-[3000] p-3 bg-slate-900 text-white text-[10px] font-bold rounded-lg shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none transform translate-x-[-105%] translate-y-[-50%] w-52 shadow-black/40 leading-relaxed border border-white/10 whitespace-normal">For Run Of Network (RON), select all DMAs</div>
+                            </div>
+                          </div>
+                          <RadioItem label="View all / Reset" active={viewFilter === 'all'} onClick={() => { setViewFilter('all'); setIsFilterDropdownOpen(false); }} />
+                          <div className="h-px bg-slate-100 mx-2" />
+                          <RadioItem label="Selected only" active={viewFilter === 'selected'} disabled={selectedDMAs.size === 0} onClick={() => { setViewFilter('selected'); setIsFilterDropdownOpen(false); }} />
+                          <RadioItem label="Available only" active={viewFilter === 'available'} disabled={!weekRange.start} onClick={() => { setViewFilter('available'); setIsFilterDropdownOpen(false); }} />
+                          <RadioItem label="Unavailable only" active={viewFilter === 'unavailable'} disabled={!weekRange.start} onClick={() => { setViewFilter('unavailable'); setIsFilterDropdownOpen(false); }} />
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </th>
+                {displayWeeks.map((week) => {
+                  const inRange = activeRange && week.id >= activeRange.min && week.id <= activeRange.max;
+                  const isColHovered = activeCursor.weekId === week.id;
+                  const blocked = isWeekDisabled(week.id);
+                  let bg = 'bg-[#F1F5F9]';
+                  if (blocked) bg = isColHovered ? 'bg-rose-100' : 'bg-rose-50';
+                  else if (inRange) bg = 'bg-[#0071CE] shadow-md';
+                  else if (isColHovered) bg = 'bg-[#E5EAF5]';
+                  const labelColor = blocked ? 'text-rose-600' : inRange ? 'text-white' : 'text-slate-900';
+                  const dateColor = blocked ? 'text-rose-600 opacity-80' : inRange ? 'text-blue-100' : 'text-slate-500';
+                  return (
+                    <th key={week.dates} onClick={() => handleWeekHeaderClick(week.id)} onMouseEnter={() => setActiveCursor({ dmaId: null, weekId: week.id })} className={`sticky top-0 p-0 border-b border-slate-200 w-[150px] transition-all z-[200] group ${bg} ${blocked ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                      <div className={`py-5 flex flex-col items-center relative transition-transform duration-200 ${blocked ? 'pointer-events-none' : ''}`}>
+                        {blocked && <Lock size={16} className="absolute top-1 text-rose-600" />}
+                        {isColHovered && !weekRange.end && !blocked && (<div className="absolute top-1 animate-in zoom-in-75 fade-in duration-200"><Plus size={20} strokeWidth={3} className="text-[#0071CE]" /></div>)}
+                        <span className={`text-sm font-black ${labelColor}`}>{week.label}</span>
+                        <span className={`text-[10px] font-bold ${dateColor}`}>{week.dates}</span>
+                      </div>
+                    </th>
+                  );
+                })}
+              </tr>
+            </thead>
+            <tbody className="relative z-0">
+              {filteredDMAs.map((dma) => {
+                const isSelected = selectedDMAs.has(dma.id);
+                const isRowHovered = activeCursor.dmaId === dma.id;
+                const blockedDma = isDmaDisabled(dma.id);
+                const rowBg = blockedDma ? (isRowHovered ? 'bg-rose-100' : 'bg-rose-50') : isSelected ? 'bg-blue-50' : (isRowHovered ? 'bg-[#E5EAF5]' : 'bg-white');
+                return (
+                  <tr key={dma.id} className="group/row">
+                    <td onClick={() => handleDmaToggle(dma.id)} onMouseEnter={() => setActiveCursor({ dmaId: dma.id, weekId: null })} className={`sticky left-0 z-[90] border-b border-r border-slate-200 p-4 transition-all shadow-[4px_0_6px_-2px_rgba(0,0,0,0.1)] ${rowBg} ${blockedDma ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                      <div className="flex items-center gap-3">
+                        <div className={`transition-colors duration-150 ${isSelected ? 'text-[#0071CE]' : (blockedDma ? 'text-rose-600' : 'text-slate-400 group-hover/row:text-[#0071CE]')}`}>
+                          {blockedDma ? <Lock size={18} /> : isSelected ? <CheckSquare size={18} /> : <Square size={18} />}
+                        </div>
+                        <div className="flex flex-col"><span className={`text-sm font-bold ${isSelected ? 'text-[#004F91]' : blockedDma ? 'text-rose-950' : 'text-slate-900'}`}>{dma.name}</span><span className="text-[11px] font-bold text-slate-400 uppercase tracking-tight">DMA {dma.id} • {dma.stores} Stores</span></div>
+                      </div>
+                    </td>
+                    {displayWeeks.map((week) => {
+                      const slotKey = `${dma.id}-${week.id}`;
+                      const cellData = INITIAL_SLOT_DATA[slotKey];
+                      const isSelectedCell = isCellSelected(dma.id, week.id);
+                      const isColHovered = activeCursor.weekId === week.id;
+                      const isRowHoveredLocal = activeCursor.dmaId === dma.id;
+                      const blockedWeek = isWeekDisabled(week.id);
+                      const isBooked = !!cellData?.booked;
+                      const hasActivity = isBooked || (cellData?.ios?.length > 0) || (cellData?.interests?.length > 0);
+                      const isCrosshairPath = isRowHoveredLocal || isColHovered;
+                      
+                      let bg = 'bg-white'; let ring = ''; let z = 'z-0'; 
+                      if (isBooked) { bg = isCrosshairPath ? 'bg-rose-50' : 'bg-rose-50/60'; if (isCrosshairPath) { ring = 'ring-2 ring-inset ring-rose-300 shadow-md'; z = 'z-20'; } }
+                      else if (cellData?.ios?.length > 0) { bg = isCrosshairPath ? 'bg-amber-100' : 'bg-amber-50'; }
+                      else if (cellData?.interests?.length > 0) { bg = isCrosshairPath ? 'bg-green-100' : 'bg-green-50'; }
+                      else if (blockedDma || blockedWeek) { 
+                        const isFocused = activeCursor.dmaId === dma.id && activeCursor.weekId === week.id;
+                        bg = isFocused ? 'bg-rose-100' : 'bg-rose-50/40'; if (isFocused) ring = 'ring-2 ring-inset ring-rose-400'; z = 'z-20'; 
+                      }
+                      else if (isCrosshairPath) { bg = 'bg-[#F0F4FA]'; }
+                      
+                      if (isSelectedCell) {
+                        bg = isBooked ? 'bg-rose-100' : (cellData?.ios?.length > 0) ? 'bg-amber-100' : (cellData?.interests?.length > 0) ? 'bg-green-100' : 'bg-blue-50';
+                        ring = 'ring-2 ring-inset ring-[#0071CE]';
+                        z = 'z-10';
+                      }
+
+                      const isDisabledCell = isBooked || blockedDma || blockedWeek;
+                      return (
+                        <td key={`${dma.id}-${week.dates}`} onClick={() => !isDisabledCell && handleCellClick(dma.id, week.id)} onMouseEnter={() => setActiveCursor({ dmaId: dma.id, weekId: week.id })} className={`border-b border-r border-slate-200 h-28 group/slot transition-all relative overflow-visible ${bg} ${ring} ${z} ${isDisabledCell ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                          <div className="flex flex-col items-center justify-between h-full py-4 px-2 text-center pointer-events-none">
+                            {!isSelectedCell && (
+                              <div className="flex flex-col items-center gap-1 w-full pointer-events-none">
+                                {isBooked && <Lock size={14} className="text-rose-600" />}
+                                {!isBooked && cellData?.ios?.length > 0 && <Clock size={14} className="text-amber-700" />}
+                                {!isBooked && cellData?.ios?.length === 0 && cellData?.interests?.length > 0 && <Zap size={14} className="text-green-700 fill-green-700/20" />}
+                                <span className={`text-[10px] font-black uppercase leading-tight line-clamp-2 ${isBooked ? 'text-rose-900' : (cellData?.ios?.length > 0 ? 'text-amber-900' : (cellData?.interests?.length > 0 ? 'text-green-800' : 'text-slate-800'))}`}>{isBooked ? cellData.booked.advertiser : (cellData?.ios?.length > 0 ? cellData.ios[0].advertiser : (cellData?.interests?.length > 0 ? cellData.interests[0].advertiser : ''))}</span>
+                              </div>
+                            )}
+                            {hasActivity && !isSelectedCell && (<button className="pointer-events-auto mt-auto flex items-center gap-1.5 text-[#0071CE] underline font-black text-[13px] hover:text-[#004F91] transition-all bg-transparent border-none p-0 opacity-0 group-hover/slot:opacity-100" onClick={(e) => { e.stopPropagation(); setViewDetailSlot({ dmaId: dma.id, weekId: week.id }); }}><Eye size={15} strokeWidth={3} /> View detail</button>)}
+                            {isSelectedCell && !isBooked && <div className="absolute inset-0 flex items-center justify-center animate-in zoom-in-75 pointer-events-none"><div className="w-7 h-7 bg-[#0071CE] rounded-lg flex items-center justify-center shadow-lg border-2 border-white"><Check size={14} className="text-white" strokeWidth={4} /></div></div>}
+                          </div>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </main>
+
+      {/* Detail Slider */}
+      <div className={`fixed inset-y-0 right-0 w-[900px] bg-white shadow-2xl border-l z-[2000] transform transition-transform duration-500 ${viewDetailSlot ? 'translate-x-0' : 'translate-x-full'}`}>
+        {viewDetailSlot && (
+          <div className="flex flex-col h-full">
+            <header className="p-8 flex items-center justify-between border-b bg-white">
+              <div><h2 className="text-2xl font-bold tracking-tight text-slate-900">Walmart Week {viewDetailSlot.weekId}</h2><p className="text-sm text-slate-400 font-medium uppercase">{DMAs.find(d => d.id === viewDetailSlot.dmaId)?.name}</p></div>
+              <button onClick={() => setViewDetailSlot(null)} className="p-2 text-slate-400 hover:text-slate-900 transition-colors"><X size={32} /></button>
+            </header>
+            <div className="flex-1 overflow-y-auto px-8 py-6">
+              <div className="flex items-center text-[11px] font-black text-slate-400 uppercase tracking-widest mb-4 px-2">
+                <div className="w-[20%]">Advertiser</div><div className="w-[18%]">Product</div><div className="w-[18%]">CM Name</div><div className="w-[12%]">Date</div><div className="w-[15%]">Weeks</div>
+                <div className="w-[17%] flex items-center justify-end gap-1.5 pr-12">
+                   <span>ACTIONS</span><div className="group relative flex items-center"><Info size={12} className="text-slate-400 cursor-help" /><div className="fixed z-[4000] p-2.5 bg-slate-900 text-white text-[10px] font-medium rounded shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none transform translate-x-[-105%] translate-y-[-50%] w-48 shadow-black/30 whitespace-normal">Actions can only be taken by the campaign manager</div></div>
+                </div>
               </div>
-              
-              <div className="action-btn-wrapper">
-                <button 
-                  className="action-btn danger"
-                  onClick={() => handleActionClick('Delete', detailModal.slot)}
-                >
-                  <DeleteIcon /> Delete
-                </button>
-                {actionTooltip === 'Delete' && (
-                  <div className="permission-tooltip">
-                    Only {detailModal.slot.manager} can delete this booking
-                  </div>
-                )}
+              <section className="mb-10"><div className="flex items-center gap-2 mb-4 font-bold text-rose-600"><Lock size={18} /> Booked</div><div className="border-t">{INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.booked ? <DetailRow rowData={INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`].booked} /> : <p className="py-8 text-sm text-slate-400 italic">No confirmed booking.</p>}</div></section>
+              <section className="mb-10"><div className="flex items-center justify-between mb-4"><div className="flex items-center gap-2 font-bold text-amber-700"><Clock size={18} /> IO in progress ({INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.ios?.length || 0})</div>{INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.ios?.length > 2 && (<button onClick={() => setIsIosExpanded(!isIosExpanded)} className="text-xs font-bold text-[#0071CE] flex items-center gap-1">{isIosExpanded ? 'View less' : 'View all'} {isIosExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>)}</div><div className="border-t">{(isIosExpanded ? INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.ios : INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.ios?.slice(0, 2))?.map((io, i) => <DetailRow key={i} rowData={io} />)}</div></section>
+              <section className="mb-10"><div className="flex items-center justify-between mb-4"><div className="flex items-center gap-2 font-bold text-green-700"><Zap size={18} className="fill-green-700/20" /> Interest ({INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.interests?.length || 0})</div>{INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.interests?.length > 2 && (<button onClick={() => setIsInterestsExpanded(!isInterestsExpanded)} className="text-xs font-bold text-[#0071CE] flex items-center gap-1">{isInterestsExpanded ? 'View less' : 'View all'} {isInterestsExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>)}</div><div className="border-t">{(isInterestsExpanded ? INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.interests : INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.interests?.slice(0, 2))?.map((o, i) => <DetailRow key={i} rowData={o} />)}</div></section>
+            </div>
+            <footer className="p-8 border-t flex justify-end gap-6 bg-slate-50 bg-opacity-30"><button onClick={() => setViewDetailSlot(null)} className="text-sm font-bold text-slate-500 uppercase tracking-widest">Cancel</button><button onClick={() => setViewDetailSlot(null)} className="px-10 py-4 bg-[#0071CE] text-white font-black rounded-full shadow hover:bg-[#004F91] transition-all text-sm uppercase tracking-widest">Save changes</button></footer>
+          </div>
+        )}
+      </div>
+
+      {/* Reservation Drawer */}
+      <div className={`fixed inset-y-0 right-0 w-[480px] bg-white shadow-2xl border-l z-[2500] transition-all duration-500 transform ${isReserving ? 'translate-x-0' : 'translate-x-full'}`}>
+        <div className="flex flex-col h-full relative">
+          <header className="px-8 py-6 flex items-center justify-between border-b bg-white">
+            <div>
+              <h2 className="text-[22px] font-black text-slate-900 leading-tight">Reserve SCO Ads</h2>
+              <p className="text-[13px] text-slate-500 mt-1 font-medium">{selectedDMAs.size} DMAs selected • Weeks {activeRange ? activeRange.min : ''} {activeRange && activeRange.max > activeRange.min ? `- ${activeRange.max}` : ''}</p>
+            </div>
+            <button onClick={() => setIsReserving(false)} className="p-2 text-slate-400 hover:text-slate-900 transition-colors"><X size={24} /></button>
+          </header>
+          
+          <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
+            <div className="space-y-1.5"><label className="text-[14px] font-bold text-slate-700">Advertiser</label>
+              <div className="relative">
+                <select value={advertiser} onChange={e => setAdvertiser(e.target.value)} className="w-full h-[46px] px-4 border border-slate-300 rounded-md font-bold text-slate-800 outline-none focus:border-[#0071CE] appearance-none shadow-sm text-sm bg-white">
+                    <option value="">Select Advertiser</option>{PREMIUM_BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
+                </select><ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
               </div>
             </div>
+
+            <div className="space-y-4 pt-2"><label className="text-[14px] font-bold text-slate-700">Status</label>
+              <div className="flex flex-row items-center gap-12">
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className="relative flex items-center justify-center w-5 h-5 rounded-full border-2 border-slate-400 group-hover:border-[#0071CE] transition-all">{reserveStatus === 'interest' && <div className="w-2.5 h-2.5 bg-[#0071CE] rounded-full" />}<input type="radio" className="sr-only" checked={reserveStatus === 'interest'} onChange={() => setReserveStatus('interest')} /></div><div className="text-[14px] font-black text-slate-900">Interest</div>
+                </label>
+                <label className="flex items-center gap-3 cursor-pointer group">
+                  <div className="relative flex items-center justify-center w-5 h-5 rounded-full border-2 border-slate-400 group-hover:border-[#0071CE] transition-all">{reserveStatus === 'book' && <div className="w-2.5 h-2.5 bg-[#0071CE] rounded-full" />}<input type="radio" className="sr-only" checked={reserveStatus === 'book'} onChange={() => setReserveStatus('book')} /></div><div className="text-[14px] font-black text-slate-900">IO in progress</div>
+                </label>
+              </div>
+            </div>
+
+            {reserveStatus === 'book' && (
+                <div className="p-5 bg-slate-50 rounded-xl border border-slate-200 space-y-5 animate-in fade-in slide-in-from-top-2 duration-300">
+                   <div className="space-y-1.5"><label className="text-[13px] font-black text-slate-500 uppercase tracking-tight">IO status</label>
+                        <div className="relative"><select value={ioStatus} onChange={e => setIoStatus(e.target.value)} className="w-full h-[46px] px-4 bg-white border border-slate-300 rounded-md font-bold text-slate-800 outline-none focus:border-[#0071CE] appearance-none shadow-sm text-sm"><option value="Draft">Draft</option><option value="Finalized">Finalized</option></select><ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} /></div>
+                    </div>
+                    <div className="space-y-1.5"><label className="text-[13px] font-black text-slate-500 uppercase tracking-tight">IO Name (optional)</label><input type="text" value={ioName} onChange={(e) => setIoName(e.target.value)} placeholder="e.g. Back to School 2026" className="w-full h-[46px] px-4 border border-slate-300 rounded-md font-medium text-slate-800 outline-none focus:border-[#0071CE] text-sm bg-white placeholder-slate-400" /></div>
+                    <div className="space-y-1.5"><label className="text-[13px] font-black text-slate-500 uppercase tracking-tight">IO Number (optional)</label><input type="text" value={ioNumber} onChange={(e) => setIoNumber(e.target.value)} placeholder="e.g. IO-882103" className="w-full h-[46px] px-4 border border-slate-300 rounded-md font-medium text-slate-800 outline-none focus:border-[#0071CE] text-sm bg-white placeholder-slate-400" /></div>
+                </div>
+            )}
+
+            <div className="space-y-1.5"><label className="text-[14px] font-bold text-slate-700">Campaign name (optional)</label><input type="text" value={campaignName} onChange={(e) => setCampaignName(e.target.value)} placeholder="Enter campaign name" className="w-full h-[46px] px-4 border border-slate-300 rounded-md font-medium text-slate-800 outline-none focus:border-[#0071CE] text-sm placeholder-slate-400" /></div>
+            <div className="space-y-1.5"><label className="text-[14px] font-bold text-slate-700">Brand/product (optional)</label><input type="text" value={brandProduct} onChange={(e) => setBrandProduct(e.target.value)} placeholder="Enter brand or product" className="w-full h-[46px] px-4 border border-slate-300 rounded-md font-medium text-slate-800 outline-none focus:border-[#0071CE] text-sm placeholder-slate-400" /></div>
+            <div className="space-y-1.5"><label className="text-[14px] font-bold text-slate-700">Ad group name (optional)</label><input type="text" value={adGroupName} onChange={(e) => setAdGroupName(e.target.value)} placeholder="Enter ad group name" className="w-full h-[46px] px-4 border border-slate-300 rounded-md font-medium text-slate-800 outline-none focus:border-[#0071CE] text-sm placeholder-slate-400" /></div>
+
+            <div className="space-y-1.5"><label className="text-[14px] font-bold text-slate-700">Category</label>
+                <div className="relative"><select value={category} onChange={e => setCategory(e.target.value)} className="w-full h-[46px] px-4 bg-white border border-slate-300 rounded-md font-bold text-slate-800 outline-none focus:border-[#0071CE] appearance-none shadow-sm text-sm"><option value="">Select category</option>{CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}</select><ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} /></div>
+            </div>
+
+            <div className="space-y-1.5"><label className="text-[14px] font-bold text-slate-700">Campaign Manager</label>
+                <div className="relative"><select value={campaignManager} onChange={e => setCampaignManager(e.target.value)} className="w-full h-[46px] px-4 bg-white border border-slate-300 rounded-md font-bold text-slate-800 outline-none focus:border-[#0071CE] appearance-none shadow-sm text-sm"><option value="">Assign manager</option>{MANAGERS.map(m => <option key={m} value={m}>{m}</option>)}</select><ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} /></div>
+            </div>
+
+            <div className="space-y-1.5 pt-2"><label className="text-[14px] font-bold text-slate-700">Notes (optional)</label><textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Add campaign notes..." className="w-full px-4 py-3 border border-slate-300 rounded-md font-medium outline-none focus:border-[#0071CE] resize-none shadow-sm text-sm placeholder-slate-400" /></div>
           </div>
-        </>
+          
+          <footer className="px-8 py-6 border-t flex justify-end gap-6 bg-white shrink-0">
+            <button onClick={() => setIsReserving(false)} className="text-[14px] font-bold text-slate-500 underline hover:text-slate-800">Cancel</button>
+            <button className="px-10 py-3 bg-[#0071CE] text-white font-black rounded-full shadow hover:bg-[#004F91] transition-all text-[14px]">Reserve</button>
+          </footer>
+        </div>
+      </div>
+
+      {actionTooltip && (
+        <div className="fixed pointer-events-none z-[9999] px-3 py-1.5 bg-slate-900 text-white text-[11px] font-medium rounded shadow-xl whitespace-nowrap" style={{ left: actionTooltip.rect.left + (actionTooltip.rect.width / 2), top: actionTooltip.rect.top - 8, transform: 'translate(-50%, -100%)' }}>
+          {actionTooltip.tip}<div className="absolute top-full left-1/2 -translate-x-1/2 border-4 border-transparent border-t-slate-900" />
+        </div>
       )}
+
+      {(isReserving || viewDetailSlot) && <div className="fixed inset-0 bg-transparent z-[1050]" onClick={() => { setIsReserving(false); setViewDetailSlot(null); }} />}
     </div>
-  )
+  );
 }
