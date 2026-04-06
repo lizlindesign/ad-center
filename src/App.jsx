@@ -86,7 +86,50 @@ const WEEKS_FY2027 = generateFiscalWeeks(FY2027_START, FY2027_START);
 const RUNNING_WEEKS = generateFiscalWeeks(RUNNING_START, FY2027_START);
 
 const INITIAL_SLOT_DATA = {};
-const PREMIUM_BRANDS = ['NIKE', 'APPLE', 'DELL', 'HP', 'COCA-COLA', 'SONY', 'STARBUCKS', 'AMAZON', 'DISNEY+', 'SPOTIFY', 'PEPSI', 'FORD', 'SAMSUNG', 'LEGO', 'NESTLE'];
+const ADVERTISERS = [
+  '3M', '7-Eleven', 'Abbott', 'Activision Blizzard', 'Adidas', 'Adobe', 'Aetna', 'Airbnb', 'Albertsons', 'Aldi',
+  'Allstate', 'Alphabet', 'Amazon', 'AMD', 'American Express', 'Amway', 'Anheuser-Busch', 'Apple', 'Aramark', 'Archer Daniels Midland',
+  'AT&T', 'Audi', 'AutoZone', 'Avery Dennison', 'Avon', 'Band-Aid', 'Barilla', 'Bath & Body Works', 'Bayer', 'Beam Suntory',
+  'Beats by Dre', 'Ben & Jerry\'s', 'Best Buy', 'Beyond Meat', 'BIC', 'Bird\'s Eye', 'Black & Decker', 'BMW', 'Bose', 'Boston Scientific',
+  'Bounty', 'Braun', 'Brita', 'Brooks Running', 'Budweiser', 'Bumble Bee', 'Burt\'s Bees', 'Bush\'s Beans', 'Calvin Klein', 'Campbell\'s',
+  'Canon', 'Capital One', 'Cargill', 'Carlsberg', 'Carhartt', 'Cascade', 'Caterpillar', 'Celsius', 'Chanel', 'Charmin',
+  'Chase', 'Cheerios', 'Cheetos', 'Chevron', 'Chick-fil-A', 'Chobani', 'Church & Dwight', 'Cisco', 'Citi', 'Clif Bar',
+  'Clorox', 'Coach', 'Coca-Cola', 'Colgate-Palmolive', 'Columbia Sportswear', 'Comcast', 'ConAgra', 'Converse', 'Corning', 'Costco',
+  'Coty', 'Cracker Barrel', 'Crayola', 'Crocs', 'Crown Royal', 'CVS Health', 'Dannon', 'Dawn', 'De Beers', 'Del Monte',
+  'Dell', 'Delta Air Lines', 'Diageo', 'Diamond Foods', 'Dior', 'Discovery', 'Disney', 'Dockers', 'Dole', 'Dollar General',
+  'Dollar Tree', 'Domino\'s', 'Doritos', 'Dove', 'Dr Pepper', 'Driscoll\'s', 'Duracell', 'Dyson', 'EA Sports', 'Eastman Kodak',
+  'eBay', 'Ecover', 'Edgewell', 'Electrolux', 'Eli Lilly', 'Energizer', 'Epson', 'Essentia Water', 'Estée Lauder', 'Etsy',
+  'ExxonMobil', 'Fanta', 'FedEx', 'Ferrero', 'Fila', 'Fisher-Price', 'Fitbit', 'Folgers', 'Food Lion', 'Ford',
+  'Fossil', 'Frito-Lay', 'Fruit of the Loom', 'Gatorade', 'GE Appliances', 'General Mills', 'General Motors', 'Gerber', 'Gillette', 'Glad',
+  'GlaxoSmithKline', 'Glenlivet', 'Godiva', 'Gold Bond', 'Goodyear', 'Google', 'GoPro', 'Goya', 'Green Giant', 'Grey Goose',
+  'Grubhub', 'Gucci', 'H&M', 'Häagen-Dazs', 'Hallmark', 'Hanes', 'Harley-Davidson', 'Harry\'s', 'Hasbro', 'Head & Shoulders',
+  'Heineken', 'Heinz', 'Hello Fresh', 'Henkel', 'Hennessy', 'Hershey\'s', 'Hewlett-Packard', 'Hidden Valley', 'Hillshire Farm', 'Honest Company',
+  'Honeywell', 'Hood', 'Hormel', 'Hot Pockets', 'HP', 'Huggies', 'Humana', 'Hunt\'s', 'Hyundai', 'IKEA',
+  'Intel', 'Iovate', 'iRobot', 'Jack Daniel\'s', 'Jameson', 'JBL', 'Jelly Belly', 'Jeep', 'Jet-Puffed', 'Jif',
+  'Jimmy Dean', 'John Deere', 'Johnson & Johnson', 'Jose Cuervo', 'Kashi', 'Kellogg\'s', 'Kenmore', 'Keurig Dr Pepper', 'KFC', 'Kia',
+  'Kimberly-Clark', 'Kind Snacks', 'KitchenAid', 'Kleenex', 'Kodiak Cakes', 'Kohl\'s', 'Kraft Heinz', 'Kroger', 'L\'Oréal', 'La Croix',
+  'Land O\'Lakes', 'Lay\'s', 'Lean Cuisine', 'LEGO', 'Lenovo', 'Levi\'s', 'LG', 'Lipton', 'Listerine', 'Logitech',
+  'Louis Vuitton', 'Lowe\'s', 'Lululemon', 'Lysol', 'M&M\'s', 'Macy\'s', 'Maker\'s Mark', 'Mars', 'Mastercard', 'Mattel',
+  'Maxwell House', 'Maytag', 'McCormick', 'McDonald\'s', 'Meow Mix', 'Mercedes-Benz', 'Meta', 'Method', 'Michelin', 'Microsoft',
+  'MillerCoors', 'Minute Maid', 'Modelo', 'Molson Coors', 'Mondelez', 'Monster Energy', 'Mott\'s', 'Mountain Dew', 'Mr. Clean', 'Nabisco',
+  'Nature\'s Path', 'Nespresso', 'Nestlé', 'Netflix', 'Neutrogena', 'New Balance', 'Newman\'s Own', 'Nike', 'Nintendo', 'Nissan',
+  'Nivea', 'Nokia', 'Nordstrom', 'North Face', 'NutriBullet', 'Nvidia', 'Oatly', 'Ocean Spray', 'Olay', 'Old Navy',
+  'Old Spice', 'Olive Garden', 'Oral-B', 'Oreo', 'Oscar Mayer', 'OxiClean', 'Pampers', 'Panasonic', 'Pandora', 'Pantene',
+  'Patagonia', 'Patron', 'Pedigree', 'Pepsi', 'Perdue', 'Perrigo', 'Pfizer', 'Philadelphia Cream Cheese', 'Philips', 'Pillsbury',
+  'Planters', 'PlayStation', 'Poise', 'Polo Ralph Lauren', 'Pop-Tarts', 'Prada', 'Prego', 'Pringles', 'Procter & Gamble', 'Progressive',
+  'Publix', 'Puma', 'Purell', 'Purina', 'Quaker Oats', 'Qualcomm', 'Rao\'s', 'Ray-Ban', 'Raytheon', 'Reckitt',
+  'Red Bull', 'Reebok', 'Revlon', 'Reynolds', 'Ring', 'Ritz', 'Rolex', 'Roku', 'Roomba', 'Rubbermaid',
+  'Russell Stover', 'S.C. Johnson', 'Sabra', 'Samsung', 'San Pellegrino', 'Sargento', 'Schick', 'Scotch-Brite', 'Scott', 'Sears',
+  'Seventh Generation', 'Sharp', 'Shell', 'Shiseido', 'Shopify', 'Silk', 'Similac', 'Simple Green', 'Skechers', 'Skippy',
+  'Smartwater', 'Smuckers', 'Snapple', 'Snickers', 'Sony', 'Southwest Airlines', 'Spam', 'Spectrum', 'Spotify', 'Sprint',
+  'Starbucks', 'State Farm', 'Stonyfield', 'Subaru', 'Subway', 'Sun-Maid', 'Sunkist', 'Swiffer', 'T-Mobile', 'Taco Bell',
+  'Target', 'Tasty Bite', 'Tesla', 'The Honest Company', 'Tide', 'Tiffany & Co.', 'TikTok', 'Tillamook', 'Timberland', 'Titleist',
+  'Tostitos', 'Toyota', 'Trader Joe\'s', 'Tropicana', 'Tums', 'Tupperware', 'Tylenol', 'Tyson Foods', 'Uber', 'Under Armour',
+  'Unilever', 'United Airlines', 'UPS', 'USAA', 'V8', 'Vans', 'Vaseline', 'Verizon', 'Versace', 'Visa',
+  'Vitamix', 'Vlasic', 'Volkswagen', 'Volvo', 'Walgreens', 'Walmart', 'Wasa', 'Weber', 'Welch\'s', 'Wells Fargo',
+  'Wendy\'s', 'Whirlpool', 'White Claw', 'Whole Foods', 'Windex', 'Wonderful Pistachios', 'Xbox', 'Xerox', 'Yakult', 'Yeti',
+  'Yoplait', 'YouTube', 'Zara', 'Ziploc', 'Zoom', 'Zyrtec'
+].sort();
 const CATEGORIES = ['Electronics', 'Grocery', 'Health & Wellness', 'Home & Patio', 'Toys', 'Apparel', 'Automotive', 'Beauty'];
 const MANAGERS = ['Sam Walton', 'Alice Glass', 'Robert Lewis', 'Sarah Chen', 'David Brooks'];
 
@@ -94,7 +137,7 @@ const generateBrandsForType = (type, hasMultiple) => {
   const count = type === 'booked' ? 1 : (hasMultiple ? Math.floor(Math.random() * 4) + 3 : 1);
   return Array.from({ length: count }, () => ({
     id: Math.random(),
-    advertiser: PREMIUM_BRANDS[Math.floor(Math.random() * PREMIUM_BRANDS.length)],
+    advertiser: ADVERTISERS[Math.floor(Math.random() * ADVERTISERS.length)],
     product: 'Campaign Plan', cm: 'S. Walton', date: 'Feb 15', status: 'Active'
   }));
 };
@@ -154,7 +197,7 @@ const RadioItem = ({ label, active, disabled, onClick }) => (
 );
 
 const DetailRow = ({ rowData }) => (
-  <div className="flex items-center py-4 border-b last:border-0 px-2 hover:bg-slate-50 transition-colors">
+  <div className="flex items-center py-4 border-b border-slate-200 last:border-0 px-2 hover:bg-slate-50 transition-colors">
     <div className="w-[20%] font-bold text-sm truncate pr-2 uppercase">{rowData.advertiser}</div>
     <div className="w-[18%] text-slate-600 text-sm truncate pr-4">{rowData.product}</div>
     <div className="w-[18%] text-slate-500 text-sm truncate pr-2">{rowData.cm}</div>
@@ -168,6 +211,111 @@ const DetailRow = ({ rowData }) => (
     </div>
   </div>
 );
+
+const AdvertiserTypeahead = ({ value, onChange }) => {
+  const [query, setQuery] = useState('');
+  const [isOpen, setIsOpen] = useState(false);
+  const [highlightIdx, setHighlightIdx] = useState(-1);
+  const containerRef = useRef(null);
+  const listRef = useRef(null);
+  const inputRef = useRef(null);
+
+  const filtered = useMemo(() => {
+    if (query.length < 3) return ADVERTISERS;
+    const q = query.toLowerCase();
+    return ADVERTISERS.filter(a => a.toLowerCase().includes(q));
+  }, [query]);
+
+  const letterGroups = useMemo(() => {
+    const groups = {};
+    filtered.forEach(a => {
+      const letter = a[0].toUpperCase();
+      if (!groups[letter]) groups[letter] = [];
+      groups[letter].push(a);
+    });
+    return groups;
+  }, [filtered]);
+
+  useEffect(() => {
+    const handleOutside = (e) => {
+      if (containerRef.current && !containerRef.current.contains(e.target)) setIsOpen(false);
+    };
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, []);
+
+  useEffect(() => {
+    setHighlightIdx(-1);
+    if (listRef.current) listRef.current.scrollTop = 0;
+  }, [query]);
+
+  const handleSelect = (adv) => {
+    onChange(adv);
+    setQuery('');
+    setIsOpen(false);
+  };
+
+  const handleKeyDown = (e) => {
+    if (!isOpen) return;
+    if (e.key === 'ArrowDown') { e.preventDefault(); setHighlightIdx(i => Math.min(i + 1, filtered.length - 1)); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); setHighlightIdx(i => Math.max(i - 1, 0)); }
+    else if (e.key === 'Enter' && highlightIdx >= 0) { e.preventDefault(); handleSelect(filtered[highlightIdx]); }
+    else if (e.key === 'Escape') { setIsOpen(false); }
+  };
+
+  return (
+    <div ref={containerRef} className="relative">
+      <div className={`flex items-center w-full h-[46px] border rounded-md bg-white shadow-sm transition-colors ${isOpen ? 'border-[#0071CE]' : 'border-slate-300'}`}>
+        <Search size={16} className="ml-4 text-slate-400 shrink-0" />
+        <input
+          ref={inputRef}
+          type="text"
+          value={isOpen ? query : (value || '')}
+          placeholder={value || 'Search advertiser...'}
+          onFocus={() => { setIsOpen(true); setQuery(''); }}
+          onChange={(e) => { setQuery(e.target.value); if (!isOpen) setIsOpen(true); }}
+          onKeyDown={handleKeyDown}
+          className="flex-1 h-full px-3 outline-none font-bold text-slate-800 text-sm bg-transparent placeholder-slate-400"
+        />
+        {value && !isOpen && (
+          <button onClick={(e) => { e.stopPropagation(); onChange(''); inputRef.current?.focus(); }} className="pr-3 text-slate-400 hover:text-slate-600">
+            <X size={16} strokeWidth={3} />
+          </button>
+        )}
+        <ChevronDown size={16} className={`mr-4 text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </div>
+
+      {isOpen && (
+        <div ref={listRef} className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-2xl z-[3000] max-h-[280px] overflow-y-auto">
+          {query.length > 0 && query.length < 3 && (
+            <div className="px-4 py-3 text-xs text-slate-400 font-medium">Type at least 3 characters to search...</div>
+          )}
+          {query.length >= 3 && filtered.length === 0 && (
+            <div className="px-4 py-6 text-sm text-slate-400 text-center">No advertisers match "<span className="font-bold text-slate-600">{query}</span>"</div>
+          )}
+          {Object.keys(letterGroups).sort().map(letter => (
+            <div key={letter}>
+              <div className="sticky top-0 px-4 py-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 border-b border-slate-100">{letter}</div>
+              {letterGroups[letter].map((adv) => {
+                const flatIdx = filtered.indexOf(adv);
+                return (
+                  <button
+                    key={adv}
+                    onClick={() => handleSelect(adv)}
+                    onMouseEnter={() => setHighlightIdx(flatIdx)}
+                    className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${flatIdx === highlightIdx ? 'bg-blue-50 text-[#0071CE] font-bold' : value === adv ? 'text-[#0071CE] font-bold bg-blue-50/50' : 'text-slate-700 hover:bg-slate-50 font-medium'}`}
+                  >
+                    {adv}
+                  </button>
+                );
+              })}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function App() {
   // --- States ---
@@ -205,6 +353,8 @@ export default function App() {
   const [campaignManager, setCampaignManager] = useState('');
   const [notes, setNotes] = useState('');
 
+  const [isScrolled, setIsScrolled] = useState(false);
+  const gridScrollRef = useRef(null);
   const searchTypeRef = useRef(null);
   const filterRef = useRef(null);
   const weekFilterRef = useRef(null);
@@ -344,7 +494,15 @@ export default function App() {
       if (weekFilterRef.current && !weekFilterRef.current.contains(e.target)) setIsWeekFilterOpen(false);
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
+
+    const scrollEl = gridScrollRef.current;
+    const handleScroll = () => setIsScrolled(scrollEl.scrollTop > 0);
+    if (scrollEl) scrollEl.addEventListener('scroll', handleScroll, { passive: true });
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      if (scrollEl) scrollEl.removeEventListener('scroll', handleScroll);
+    };
   }, []);
 
   return (
@@ -454,11 +612,11 @@ export default function App() {
         </div>
 
         {/* Grid Area */}
-        <div className="flex-1 overflow-auto bg-white" onMouseLeave={() => setActiveCursor({ dmaId: null, weekId: null })}>
+        <div ref={gridScrollRef} className="flex-1 overflow-auto bg-white" onMouseLeave={() => setActiveCursor({ dmaId: null, weekId: null })}>
           <table className="border-separate border-spacing-0 w-full relative table-fixed">
             <thead>
               <tr className="sticky top-0 z-[200]">
-                <th className={`sticky left-0 z-[210] bg-[#F1F5F9] border-b border-r border-slate-200 p-0 text-left w-[360px] shadow-[4px_0_6px_-2px_rgba(0,0,0,0.1)] transition-colors ${activeCursor.dmaId ? 'bg-[#E5EAF5]' : ''}`}>
+                <th className={`sticky left-0 z-[210] bg-[#F1F5F9] border-b border-r border-slate-200 p-0 text-left w-[360px] shadow-[4px_0_6px_-2px_rgba(0,0,0,0.1)] transition-colors ${activeCursor.dmaId ? 'bg-[#E5EAF5]' : ''} ${isScrolled ? 'shadow-[4px_4px_6px_-2px_rgba(0,0,0,0.1)]' : ''}`}>
                   <div className="flex items-center gap-3 p-4 overflow-visible relative">
                     <button onClick={handleHeaderCheckboxToggle} className="text-slate-400 hover:text-[#0071CE] transition-colors shrink-0">{selectedDMAs.size > 0 ? <MinusSquare size={18} className="text-[#0071CE]" /> : <Square size={18} />}</button>
                     <div className="flex items-center gap-2"><span className="text-xs font-black text-slate-500 uppercase tracking-widest">{isAnyFilterActive ? "Filtered DMAs" : "All DMAs"}</span>
@@ -497,7 +655,7 @@ export default function App() {
                   const labelColor = blocked ? 'text-rose-600' : inRange ? 'text-white' : 'text-slate-900';
                   const dateColor = blocked ? 'text-rose-600 opacity-80' : inRange ? 'text-blue-100' : 'text-slate-500';
                   return (
-                    <th key={week.dates} onClick={() => handleWeekHeaderClick(week.id)} onMouseEnter={() => setActiveCursor({ dmaId: null, weekId: week.id })} className={`sticky top-0 p-0 border-b border-slate-200 w-[150px] transition-all z-[200] group ${bg} ${blocked ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
+                    <th key={week.dates} onClick={() => handleWeekHeaderClick(week.id)} onMouseEnter={() => setActiveCursor({ dmaId: null, weekId: week.id })} className={`sticky top-0 p-0 border-b border-slate-200 w-[150px] transition-all z-[200] group ${bg} ${blocked ? 'cursor-not-allowed' : 'cursor-pointer'} ${isScrolled ? 'shadow-[0_4px_6px_-2px_rgba(0,0,0,0.1)]' : ''}`}>
                       <div className={`py-5 flex flex-col items-center relative transition-transform duration-200 ${blocked ? 'pointer-events-none' : ''}`}>
                         {blocked && <Lock size={16} className="absolute top-1 text-rose-600" />}
                         {isColHovered && !weekRange.end && !blocked && (<div className="absolute top-1 animate-in zoom-in-75 fade-in duration-200"><Plus size={20} strokeWidth={3} className="text-[#0071CE]" /></div>)}
@@ -579,10 +737,10 @@ export default function App() {
       </main>
 
       {/* Detail Slider */}
-      <div className={`fixed inset-y-0 right-0 w-[900px] bg-white shadow-2xl border-l z-[2000] transform transition-transform duration-500 ${viewDetailSlot ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed inset-y-0 right-0 w-[900px] bg-white shadow-2xl border-l border-slate-200 z-[2000] transform transition-transform duration-500 ${viewDetailSlot ? 'translate-x-0' : 'translate-x-full'}`}>
         {viewDetailSlot && (
           <div className="flex flex-col h-full">
-            <header className="p-8 flex items-center justify-between border-b bg-white">
+            <header className="p-8 flex items-center justify-between border-b border-slate-200 bg-white">
               <div><h2 className="text-2xl font-bold tracking-tight text-slate-900">Walmart Week {viewDetailSlot.weekId}</h2><p className="text-sm text-slate-400 font-medium uppercase">{DMAs.find(d => d.id === viewDetailSlot.dmaId)?.name}</p></div>
               <button onClick={() => setViewDetailSlot(null)} className="p-2 text-slate-400 hover:text-slate-900 transition-colors"><X size={32} /></button>
             </header>
@@ -593,19 +751,19 @@ export default function App() {
                    <span>ACTIONS</span><div className="group relative flex items-center"><Info size={12} className="text-slate-400 cursor-help" /><div className="fixed z-[4000] p-2.5 bg-slate-900 text-white text-[10px] font-medium rounded shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none transform translate-x-[-105%] translate-y-[-50%] w-48 shadow-black/30 whitespace-normal">Actions can only be taken by the campaign manager</div></div>
                 </div>
               </div>
-              <section className="mb-10"><div className="flex items-center gap-2 mb-4 font-bold text-rose-600"><Lock size={18} /> Booked</div><div className="border-t">{INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.booked ? <DetailRow rowData={INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`].booked} /> : <p className="py-8 text-sm text-slate-400 italic">No confirmed booking.</p>}</div></section>
-              <section className="mb-10"><div className="flex items-center justify-between mb-4"><div className="flex items-center gap-2 font-bold text-amber-700"><Clock size={18} /> IO in progress ({INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.ios?.length || 0})</div>{INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.ios?.length > 2 && (<button onClick={() => setIsIosExpanded(!isIosExpanded)} className="text-xs font-bold text-[#0071CE] flex items-center gap-1">{isIosExpanded ? 'View less' : 'View all'} {isIosExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>)}</div><div className="border-t">{(isIosExpanded ? INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.ios : INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.ios?.slice(0, 2))?.map((io, i) => <DetailRow key={i} rowData={io} />)}</div></section>
-              <section className="mb-10"><div className="flex items-center justify-between mb-4"><div className="flex items-center gap-2 font-bold text-green-700"><Zap size={18} className="fill-green-700/20" /> Interest ({INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.interests?.length || 0})</div>{INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.interests?.length > 2 && (<button onClick={() => setIsInterestsExpanded(!isInterestsExpanded)} className="text-xs font-bold text-[#0071CE] flex items-center gap-1">{isInterestsExpanded ? 'View less' : 'View all'} {isInterestsExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>)}</div><div className="border-t">{(isInterestsExpanded ? INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.interests : INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.interests?.slice(0, 2))?.map((o, i) => <DetailRow key={i} rowData={o} />)}</div></section>
+              <section className="mb-10"><div className="flex items-center gap-2 mb-4 font-bold text-rose-600"><Lock size={18} /> Booked</div><div className="border-t border-slate-200">{INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.booked ? <DetailRow rowData={INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`].booked} /> : <p className="py-8 text-sm text-slate-400 italic">No confirmed booking.</p>}</div></section>
+              <section className="mb-10"><div className="flex items-center justify-between mb-4"><div className="flex items-center gap-2 font-bold text-amber-700"><Clock size={18} /> IO in progress ({INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.ios?.length || 0})</div>{INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.ios?.length > 2 && (<button onClick={() => setIsIosExpanded(!isIosExpanded)} className="text-xs font-bold text-[#0071CE] flex items-center gap-1">{isIosExpanded ? 'View less' : 'View all'} {isIosExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>)}</div><div className="border-t border-slate-200">{(isIosExpanded ? INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.ios : INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.ios?.slice(0, 2))?.map((io, i) => <DetailRow key={i} rowData={io} />)}</div></section>
+              <section className="mb-10"><div className="flex items-center justify-between mb-4"><div className="flex items-center gap-2 font-bold text-green-700"><Zap size={18} className="fill-green-700/20" /> Interest ({INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.interests?.length || 0})</div>{INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.interests?.length > 2 && (<button onClick={() => setIsInterestsExpanded(!isInterestsExpanded)} className="text-xs font-bold text-[#0071CE] flex items-center gap-1">{isInterestsExpanded ? 'View less' : 'View all'} {isInterestsExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>)}</div><div className="border-t border-slate-200">{(isInterestsExpanded ? INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.interests : INITIAL_SLOT_DATA[`${viewDetailSlot.dmaId}-${viewDetailSlot.weekId}`]?.interests?.slice(0, 2))?.map((o, i) => <DetailRow key={i} rowData={o} />)}</div></section>
             </div>
-            <footer className="p-8 border-t flex justify-end gap-6 bg-slate-50 bg-opacity-30"><button onClick={() => setViewDetailSlot(null)} className="text-sm font-bold text-slate-500 uppercase tracking-widest">Cancel</button><button onClick={() => setViewDetailSlot(null)} className="px-10 py-4 bg-[#0071CE] text-white font-black rounded-full shadow hover:bg-[#004F91] transition-all text-sm uppercase tracking-widest">Save changes</button></footer>
+            <footer className="p-8 border-t border-slate-200 flex justify-end gap-6 bg-slate-50 bg-opacity-30"><button onClick={() => setViewDetailSlot(null)} className="text-sm font-bold text-slate-500 uppercase tracking-widest">Cancel</button><button onClick={() => setViewDetailSlot(null)} className="px-10 py-4 bg-[#0071CE] text-white font-black rounded-full shadow hover:bg-[#004F91] transition-all text-sm uppercase tracking-widest">Save changes</button></footer>
           </div>
         )}
       </div>
 
       {/* Reservation Drawer */}
-      <div className={`fixed inset-y-0 right-0 w-[480px] bg-white shadow-2xl border-l z-[2500] transition-all duration-500 transform ${isReserving ? 'translate-x-0' : 'translate-x-full'}`}>
+      <div className={`fixed inset-y-0 right-0 w-[480px] bg-white shadow-2xl border-l border-slate-200 z-[2500] transition-all duration-500 transform ${isReserving ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex flex-col h-full relative">
-          <header className="px-8 py-6 flex items-center justify-between border-b bg-white">
+          <header className="px-8 py-6 flex items-center justify-between border-b border-slate-200 bg-white">
             <div>
               <h2 className="text-[22px] font-black text-slate-900 leading-tight">Reserve SCO Ads</h2>
               <p className="text-[13px] text-slate-500 mt-1 font-medium">{selectedDMAs.size} DMAs selected • Weeks {activeRange ? activeRange.min : ''} {activeRange && activeRange.max > activeRange.min ? `- ${activeRange.max}` : ''}</p>
@@ -615,11 +773,7 @@ export default function App() {
           
           <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
             <div className="space-y-1.5"><label className="text-[14px] font-bold text-slate-700">Advertiser</label>
-              <div className="relative">
-                <select value={advertiser} onChange={e => setAdvertiser(e.target.value)} className="w-full h-[46px] px-4 border border-slate-300 rounded-md font-bold text-slate-800 outline-none focus:border-[#0071CE] appearance-none shadow-sm text-sm bg-white">
-                    <option value="">Select Advertiser</option>{PREMIUM_BRANDS.map(b => <option key={b} value={b}>{b}</option>)}
-                </select><ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
-              </div>
+              <AdvertiserTypeahead value={advertiser} onChange={setAdvertiser} />
             </div>
 
             <div className="space-y-4 pt-2"><label className="text-[14px] font-bold text-slate-700">Status</label>
@@ -658,7 +812,7 @@ export default function App() {
             <div className="space-y-1.5 pt-2"><label className="text-[14px] font-bold text-slate-700">Notes (optional)</label><textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Add campaign notes..." className="w-full px-4 py-3 border border-slate-300 rounded-md font-medium outline-none focus:border-[#0071CE] resize-none shadow-sm text-sm placeholder-slate-400" /></div>
           </div>
           
-          <footer className="px-8 py-6 border-t flex justify-end gap-6 bg-white shrink-0">
+          <footer className="px-8 py-6 border-t border-slate-200 flex justify-end gap-6 bg-white shrink-0">
             <button onClick={() => setIsReserving(false)} className="text-[14px] font-bold text-slate-500 underline hover:text-slate-800">Cancel</button>
             <button className="px-10 py-3 bg-[#0071CE] text-white font-black rounded-full shadow hover:bg-[#004F91] transition-all text-[14px]">Reserve</button>
           </footer>
@@ -671,7 +825,7 @@ export default function App() {
         </div>
       )}
 
-      {(isReserving || viewDetailSlot) && <div className="fixed inset-0 bg-transparent z-[1050]" onClick={() => { setIsReserving(false); setViewDetailSlot(null); }} />}
+      {(isReserving || viewDetailSlot) && <div className="fixed inset-0 bg-black/50 z-[1050]" onClick={() => { setIsReserving(false); setViewDetailSlot(null); }} />}
     </div>
   );
 }
