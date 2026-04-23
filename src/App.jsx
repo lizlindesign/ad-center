@@ -579,7 +579,7 @@ export default function App() {
                   <div className="flex items-center gap-3 p-4">
                     <button onClick={selectAllFiltered} className="text-slate-400 hover:text-[#0071CE] shrink-0">{allFilteredSelected ? <CheckSquare size={18} className="text-[#0071CE]" /> : someFilteredSelected ? <MinusSquare size={18} className="text-[#0071CE]" /> : <Square size={18} />}</button>
                     <div className="flex items-center gap-1.5 min-w-0">
-                      <span className="text-xs font-black text-slate-500 uppercase tracking-widest leading-tight max-w-[80px]">{isAnyFilterActive ? 'Filtered' : 'All'} Stores</span>
+                      <span className="text-xs font-black text-slate-500 uppercase tracking-widest leading-tight min-w-0 shrink">{isAnyFilterActive ? 'Filtered' : 'All'} Stores</span>
                       <span className="bg-slate-200 text-slate-700 px-2 py-0.5 rounded text-[11px] font-black border border-slate-300/50 whitespace-nowrap shrink-0">{filteredStores.length.toLocaleString()}</span>
                     </div>
                     <div className="relative ml-auto shrink-0" ref={viewFilterRef}>
