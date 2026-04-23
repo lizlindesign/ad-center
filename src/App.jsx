@@ -255,7 +255,7 @@ const StoresLabel = ({ text, count }) => {
 
   return (
     <div ref={containerRef} className="relative min-w-0" style={{overflow: 'visible'}}>
-      <div ref={labelRef} className="font-black text-slate-500 uppercase tracking-widest" style={{fontSize:'12px', lineHeight:'13px', letterSpacing:'0.05em'}}>{text}</div>
+      <div ref={labelRef} className="font-black text-slate-500 uppercase tracking-widest" style={{fontSize:'12px', lineHeight:'16px', letterSpacing:'0.05em'}}>{text}</div>
       <span ref={badgeRef} className="absolute bg-slate-200 text-slate-700 px-2 py-0.5 rounded text-[11px] font-black border border-slate-300/50 whitespace-nowrap" style={{visibility: 'hidden'}}>{count}</span>
     </div>
   );
@@ -641,7 +641,7 @@ export default function App() {
                     <div className="relative ml-auto shrink-0" ref={viewFilterRef}>
                       <button onClick={() => setIsViewFilterOpen(!isViewFilterOpen)} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all ${viewFilter !== 'all' ? 'bg-blue-50 text-[#0071CE] border border-blue-100 shadow-sm' : 'hover:bg-slate-200 text-slate-400'}`}>{viewFilter !== 'all' && <span className="text-[10px] font-black uppercase mr-1">{viewFilter === 'available' && availableSubs.size > 0 && availableSubs.size < 3 ? [...availableSubs].map(s => s === 'io' ? 'IO' : s.charAt(0).toUpperCase() + s.slice(1)).join(', ') : viewFilter === 'available' ? 'Available' : viewFilter}</span>}<Eye size={16} strokeWidth={3} /></button>
                       {isViewFilterOpen && createPortal(
-                        <div ref={viewFilterDropdownRef} className="fixed w-64 bg-white border border-slate-200 rounded-lg shadow-2xl z-[9999]" style={(() => { const r = viewFilterRef.current?.getBoundingClientRect(); return r ? { top: r.bottom + 8, left: Math.max(8, r.right - 256) } : {}; })()}>
+                        <div ref={viewFilterDropdownRef} className="fixed w-64 bg-white border border-slate-200 rounded-lg shadow-2xl z-[9999]" style={(() => { const r = viewFilterRef.current?.closest('th')?.getBoundingClientRect(); return r ? { top: r.bottom - 12, left: r.right - 256 - 16 + 150 } : {}; })()}>
                           <div className="px-4 py-3 border-b bg-slate-50 font-black text-sm uppercase text-slate-600 tracking-tight flex items-center gap-2"><Eye size={16} /> View by</div>
                           {[{v:'all',l:'View all / Reset'},{v:'selected',l:'Selected only'}].map(o => (
                             <button key={o.v} onClick={() => { setViewFilter(o.v); setAvailableSubs(new Set()); setIsViewFilterOpen(false); }} disabled={o.v === 'selected' && selectedStores.size === 0} className={`w-full flex items-center gap-3 px-4 py-3 text-[11px] font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed ${viewFilter === o.v ? 'bg-blue-50 text-[#0071CE]' : 'text-slate-700 hover:bg-slate-50'}`}>
