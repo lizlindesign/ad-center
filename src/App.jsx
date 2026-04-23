@@ -1,4 +1,5 @@
-import React, { useState, useMemo, useRef, useEffect } from 'react';
+import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import {
   Search, Download, Upload, Lock, Clock, User, X, Calendar, ChevronDown, Plus,
   HelpCircle, Bell, Check, CheckSquare, Square, Zap, Info, MinusSquare, Trash2,
@@ -203,6 +204,63 @@ const DetailRow = ({ rowData }) => (
   </div>
 );
 
+const StoresLabel = ({ text, count }) => {
+  const containerRef = useRef(null);
+  const labelRef = useRef(null);
+  const badgeRef = useRef(null);
+  const lastWidthRef = useRef(0);
+
+  useEffect(() => {
+    const container = containerRef.current;
+    const label = labelRef.current;
+    const badge = badgeRef.current;
+    if (!container || !label || !badge) return;
+    let raf = 0;
+
+    const measure = () => {
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(() => {
+        const range = document.createRange();
+        range.selectNodeContents(label);
+        const rects = range.getClientRects();
+        if (rects.length === 0) return;
+        const containerRect = container.getBoundingClientRect();
+        const firstTop = rects[0].top - containerRect.top;
+        const lastBottom = rects[rects.length - 1].bottom - containerRect.top;
+        const midY = (firstTop + lastBottom) / 2;
+        const badgeH = badge.offsetHeight;
+        const gap = 16;
+        let maxRight = 0;
+        for (let i = 0; i < rects.length; i++) {
+          const r = rects[i].right - containerRect.left;
+          if (r > maxRight) maxRight = r;
+        }
+        const textEnd = Math.ceil(maxRight);
+        badge.style.left = textEnd + gap + 'px';
+        badge.style.top = Math.round(midY - badgeH / 2) + 'px';
+        badge.style.visibility = '';
+        const needed = textEnd + gap + badge.offsetWidth;
+        if (needed !== lastWidthRef.current) {
+          lastWidthRef.current = needed;
+          container.style.marginRight = (gap + badge.offsetWidth) + 'px';
+        }
+      });
+    };
+
+    measure();
+    const ro = new ResizeObserver(measure);
+    ro.observe(container.parentElement);
+    return () => { ro.disconnect(); cancelAnimationFrame(raf); };
+  }, [text, count]);
+
+  return (
+    <div ref={containerRef} className="relative min-w-0" style={{overflow: 'visible'}}>
+      <div ref={labelRef} className="font-black text-slate-500 uppercase tracking-widest" style={{fontSize:'12px', lineHeight:'13px', letterSpacing:'0.05em'}}>{text}</div>
+      <span ref={badgeRef} className="absolute bg-slate-200 text-slate-700 px-2 py-0.5 rounded text-[11px] font-black border border-slate-300/50 whitespace-nowrap" style={{visibility: 'hidden'}}>{count}</span>
+    </div>
+  );
+};
+
 const AdvertiserTypeahead = ({ value, onChange }) => {
   const [query, setQuery] = useState('');
   const [isOpen, setIsOpen] = useState(false);
@@ -287,6 +345,7 @@ export default function App() {
   const weekFilterRef = useRef(null);
   const filterPanelRef = useRef(null);
   const viewFilterRef = useRef(null);
+  const viewFilterDropdownRef = useRef(null);
 
   // --- Filtered stores ---
   const filteredStores = useMemo(() => {
@@ -454,7 +513,7 @@ export default function App() {
       if (searchTypeRef.current && !searchTypeRef.current.contains(e.target)) setIsSearchTypeDropdownOpen(false);
       if (weekFilterRef.current && !weekFilterRef.current.contains(e.target)) setIsWeekFilterOpen(false);
       if (filterPanelRef.current && !filterPanelRef.current.contains(e.target)) setIsFilterPanelOpen(false);
-      if (viewFilterRef.current && !viewFilterRef.current.contains(e.target)) setIsViewFilterOpen(false);
+      if (viewFilterRef.current && !viewFilterRef.current.contains(e.target) && (!viewFilterDropdownRef.current || !viewFilterDropdownRef.current.contains(e.target))) setIsViewFilterOpen(false);
     };
     document.addEventListener('mousedown', handleClickOutside);
     const scrollEl = gridScrollRef.current;
@@ -575,17 +634,14 @@ export default function App() {
           <table className="border-separate border-spacing-0 w-full relative table-fixed">
             <thead>
               <tr className="sticky top-0 z-[200]">
-                <th className={`sticky left-0 z-[210] bg-[#F1F5F9] border-b border-r border-slate-200 p-0 text-left w-[380px] shadow-[4px_0_6px_-2px_rgba(0,0,0,0.1)] ${isScrolled ? 'shadow-[4px_4px_6px_-2px_rgba(0,0,0,0.1)]' : ''}`}>
+                <th className={`sticky left-0 z-[210] bg-[#F1F5F9] border-b border-r border-slate-200 p-0 text-left w-[360px] shadow-[4px_0_6px_-2px_rgba(0,0,0,0.1)] ${isScrolled ? 'shadow-[4px_4px_6px_-2px_rgba(0,0,0,0.1)]' : ''}`}>
                   <div className="flex items-center gap-3 p-4">
                     <button onClick={selectAllFiltered} className="text-slate-400 hover:text-[#0071CE] shrink-0">{allFilteredSelected ? <CheckSquare size={18} className="text-[#0071CE]" /> : someFilteredSelected ? <MinusSquare size={18} className="text-[#0071CE]" /> : <Square size={18} />}</button>
-                    <div className="flex items-center gap-1.5 min-w-0">
-                      <span className="text-xs font-black text-slate-500 uppercase tracking-widest leading-tight min-w-0 shrink">{isAnyFilterActive ? 'Filtered' : 'All'} Stores</span>
-                      <span className="bg-slate-200 text-slate-700 px-2 py-0.5 rounded text-[11px] font-black border border-slate-300/50 whitespace-nowrap shrink-0">{filteredStores.length.toLocaleString()}</span>
-                    </div>
+                    <StoresLabel text={`${isAnyFilterActive ? 'Filtered' : 'All'} Stores`} count={filteredStores.length.toLocaleString()} />
                     <div className="relative ml-auto shrink-0" ref={viewFilterRef}>
                       <button onClick={() => setIsViewFilterOpen(!isViewFilterOpen)} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all ${viewFilter !== 'all' ? 'bg-blue-50 text-[#0071CE] border border-blue-100 shadow-sm' : 'hover:bg-slate-200 text-slate-400'}`}>{viewFilter !== 'all' && <span className="text-[10px] font-black uppercase mr-1">{viewFilter === 'available' && availableSubs.size > 0 && availableSubs.size < 3 ? [...availableSubs].map(s => s === 'io' ? 'IO' : s.charAt(0).toUpperCase() + s.slice(1)).join(', ') : viewFilter === 'available' ? 'Available' : viewFilter}</span>}<Eye size={16} strokeWidth={3} /></button>
-                      {isViewFilterOpen && (
-                        <div className="absolute top-full right-0 mt-2 w-64 bg-white border border-slate-200 rounded-lg shadow-2xl z-[500]">
+                      {isViewFilterOpen && createPortal(
+                        <div ref={viewFilterDropdownRef} className="fixed w-64 bg-white border border-slate-200 rounded-lg shadow-2xl z-[9999]" style={(() => { const r = viewFilterRef.current?.getBoundingClientRect(); return r ? { top: r.bottom + 8, left: Math.max(8, r.right - 256) } : {}; })()}>
                           <div className="px-4 py-3 border-b bg-slate-50 font-black text-sm uppercase text-slate-600 tracking-tight flex items-center gap-2"><Eye size={16} /> View by</div>
                           {[{v:'all',l:'View all / Reset'},{v:'selected',l:'Selected only'}].map(o => (
                             <button key={o.v} onClick={() => { setViewFilter(o.v); setAvailableSubs(new Set()); setIsViewFilterOpen(false); }} disabled={o.v === 'selected' && selectedStores.size === 0} className={`w-full flex items-center gap-3 px-4 py-3 text-[11px] font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed ${viewFilter === o.v ? 'bg-blue-50 text-[#0071CE]' : 'text-slate-700 hover:bg-slate-50'}`}>
@@ -620,7 +676,7 @@ export default function App() {
                             </button>
                           </div>
                         </div>
-                      )}
+                      , document.body)}
                     </div>
                   </div>
                 </th>
@@ -751,7 +807,7 @@ export default function App() {
           const rect = scrollEl?.getBoundingClientRect();
           if (!rect) return null;
           return (
-            <div className="fixed z-[195] bg-white/98 backdrop-blur-md border-b border-r border-slate-200 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.12),4px_0_6px_-2px_rgba(0,0,0,0.08)]" style={{ top: rect.top + 73, left: rect.left, width: 380 }}>
+            <div className="fixed z-[195] bg-white/98 backdrop-blur-md border-b border-r border-slate-200 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.12),4px_0_6px_-2px_rgba(0,0,0,0.08)]" style={{ top: rect.top + 73, left: rect.left, width: 360 }}>
               <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#0071CE] rounded-r" />
               <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-blue-50/60 to-transparent">
                 <button onClick={() => selectAllInState(pinnedState)} className="shrink-0 text-slate-400 hover:text-[#0071CE]">{allStateSel ? <CheckSquare size={16} className="text-[#0071CE]" /> : stateSelCount > 0 ? <MinusSquare size={16} className="text-[#0071CE]" /> : <Square size={16} />}</button>
