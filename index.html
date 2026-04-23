@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Walmart Ad Center — Version Comparison</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f8fafc; color: #1e293b; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px 20px; }
+  h1 { font-size: 28px; font-weight: 900; margin-bottom: 8px; }
+  p.sub { color: #64748b; font-size: 14px; margin-bottom: 40px; }
+  .grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; max-width: 720px; width: 100%; }
+  .card { background: white; border: 1px solid #e2e8f0; border-radius: 16px; padding: 28px; text-decoration: none; color: inherit; transition: all 0.2s; }
+  .card:hover { border-color: #0071CE; box-shadow: 0 8px 24px rgba(0,113,206,0.12); transform: translateY(-2px); }
+  .card h2 { font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+  .card p { color: #64748b; font-size: 13px; line-height: 1.5; }
+  .badge { display: inline-block; font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; padding: 3px 8px; border-radius: 6px; margin-bottom: 12px; }
+  .b-blue { background: #dbeafe; color: #1d4ed8; }
+  .b-green { background: #dcfce7; color: #16a34a; }
+  .b-amber { background: #fef3c7; color: #d97706; }
+  .b-purple { background: #f3e8ff; color: #7c3aed; }
+</style>
+</head>
+<body>
+  <h1>Walmart Ad Center</h1>
+  <p class="sub">SCO Inventory Calendar — Prototype Versions</p>
+  <div class="grid">
+    <a class="card" href="v1-store-rows/">
+      <span class="badge b-blue">v1 — Current</span>
+      <h2>Store-Level Targeting</h2>
+      <p>Individual store rows grouped by state. Expandable groups, filters, sub-status view (Blank, IO, Interest).</p>
+    </a>
+    <a class="card" href="v2-dma/">
+      <span class="badge b-green">v2 — DMA</span>
+      <h2>DMA-Level Targeting</h2>
+      <p>Original DMA-based grid with 50 designated market areas. Typeahead advertiser search.</p>
+    </a>
+    <a class="card" href="v3-aggregated/">
+      <span class="badge b-amber">v3 — Aggregated</span>
+      <h2>Store-Level — Aggregated</h2>
+      <p>State-grouped aggregated slots. Mini-bar visualization per state per week.</p>
+    </a>
+    <a class="card" href="v4-polished/">
+      <span class="badge b-purple">v4 — Polished</span>
+      <h2>Store-Level — Polished</h2>
+      <p>Latest store-level targeting with refined filters and layout polish.</p>
+    </a>
+  </div>
+</body>
+</html>
