@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { Routes, Route, useNavigate, useLocation, Navigate } from 'react-router-dom';
 import { AppSidebar } from './components/AppSidebar';
 import { WalmartConnectLogo } from './components/WalmartConnectLogo';
 import MediaSolutionsDropdown from './components/MediaSolutionsDropdown';
@@ -346,7 +347,32 @@ export default function App() {
   const [notes, setNotes] = useState('');
 
   const [pinnedState, setPinnedState] = useState(null);
-  const [currentPage, setCurrentPage] = useState('inventory-calendar');
+  const navigate = useNavigate();
+  const location = useLocation();
+  
+  const pathToPage = {
+    '/': 'inventory-calendar',
+    '/inventory-calendar': 'inventory-calendar',
+    '/ad-inventory': 'ad-inventory',
+    '/sponsored-search': 'sponsored-search',
+    '/display-advertising': 'display-advertising',
+    '/unified-reports': 'unified-reports',
+    '/shop-builder': 'shop-builder',
+  };
+  
+  const currentPage = pathToPage[location.pathname] || 'inventory-calendar';
+  
+  const setCurrentPage = (page) => {
+    const pageToPath = {
+      'inventory-calendar': '/inventory-calendar',
+      'ad-inventory': '/ad-inventory',
+      'sponsored-search': '/sponsored-search',
+      'display-advertising': '/display-advertising',
+      'unified-reports': '/unified-reports',
+      'shop-builder': '/shop-builder',
+    };
+    navigate(pageToPath[page] || '/');
+  };
 
   const stateRowRefs = useRef({});
 
