@@ -1,5 +1,13 @@
 import React, { useState, useMemo, useRef, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
+import { AppSidebar } from './components/AppSidebar';
+import { WalmartConnectLogo } from './components/WalmartConnectLogo';
+import MediaSolutionsDropdown from './components/MediaSolutionsDropdown';
+import LanguageSwitcher from './components/LanguageSwitcher';
+import SponsoredSearch from './pages/SponsoredSearch';
+import DisplayAdvertising from './pages/DisplayAdvertising';
+import AdInventory from './pages/AdInventory';
+import StubPage from './pages/StubPage';
 import {
   Search, Download, Upload, Lock, Clock, User, X, Calendar, ChevronDown, Plus,
   HelpCircle, Bell, Check, CheckSquare, Square, Zap, Info, MinusSquare, Trash2,
@@ -198,7 +206,7 @@ const DetailRow = ({ rowData }) => (
     <div className="w-[12%] text-slate-500 text-sm pr-2">{rowData.date}</div>
     <div className="w-[15%] text-slate-700 text-sm font-bold">{rowData.weeks}</div>
     <div className="w-[17%] flex items-center justify-end gap-3 pr-2">
-      <button className="p-1.5 rounded hover:bg-blue-50 text-slate-400 hover:text-[#0071CE] transition-colors"><Pencil size={14} /></button>
+      <button className="p-1.5 rounded hover:bg-blue-50 text-slate-400 hover:text-[#0053E2] transition-colors"><Pencil size={14} /></button>
       <button className="p-1.5 rounded hover:bg-rose-50 text-slate-400 hover:text-rose-500 transition-colors"><Trash2 size={14} /></button>
     </div>
   </div>
@@ -276,20 +284,20 @@ const AdvertiserTypeahead = ({ value, onChange }) => {
   const handleKeyDown = (e) => { if (!isOpen) return; if (e.key === 'ArrowDown') { e.preventDefault(); setHighlightIdx(i => Math.min(i + 1, filtered.length - 1)); } else if (e.key === 'ArrowUp') { e.preventDefault(); setHighlightIdx(i => Math.max(i - 1, 0)); } else if (e.key === 'Enter' && highlightIdx >= 0) { e.preventDefault(); handleSelect(filtered[highlightIdx]); } else if (e.key === 'Escape') setIsOpen(false); };
   return (
     <div ref={containerRef} className="relative">
-      <div className={`flex items-center w-full h-[46px] border rounded-md bg-white shadow-sm transition-colors ${isOpen ? 'border-[#0071CE]' : 'border-slate-300'}`}>
+      <div className={`flex items-center w-full h-10 border rounded bg-white transition-colors ${isOpen ? 'border-2 border-[#0053E2]' : 'border-[#BABBBE]'}`}>
         <Search size={16} className="ml-4 text-slate-400 shrink-0" />
         <input ref={inputRef} type="text" value={isOpen ? query : (value || '')} placeholder={value || 'Search advertiser...'} onFocus={() => { setIsOpen(true); setQuery(''); }} onChange={(e) => { setQuery(e.target.value); if (!isOpen) setIsOpen(true); }} onKeyDown={handleKeyDown} className="flex-1 h-full px-3 outline-none font-bold text-slate-800 text-sm bg-transparent placeholder-slate-400" />
         {value && !isOpen && <button onClick={(e) => { e.stopPropagation(); onChange(''); inputRef.current?.focus(); }} className="pr-3 text-slate-400 hover:text-slate-600"><X size={16} strokeWidth={3} /></button>}
         <ChevronDown size={16} className={`mr-4 text-slate-400 shrink-0 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
       </div>
       {isOpen && (
-        <div ref={listRef} className="absolute top-full left-0 right-0 mt-1 bg-white border border-slate-200 rounded-lg shadow-2xl z-[3000] max-h-[280px] overflow-y-auto">
+        <div ref={listRef} className="absolute top-full left-0 right-0 mt-1 bg-white border border-[#E3E4E5] rounded shadow-[0px_4px_16px_rgba(0,0,0,0.12)] z-[3000] max-h-[280px] overflow-y-auto">
           {query.length > 0 && query.length < 3 && <div className="px-4 py-3 text-xs text-slate-400 font-medium">Type at least 3 characters to search...</div>}
           {query.length >= 3 && filtered.length === 0 && <div className="px-4 py-6 text-sm text-slate-400 text-center">No match for "<span className="font-bold text-slate-600">{query}</span>"</div>}
           {Object.keys(letterGroups).sort().map(letter => (
             <div key={letter}>
               <div className="sticky top-0 px-4 py-1.5 text-[10px] font-black text-slate-400 uppercase tracking-widest bg-slate-50 border-b border-slate-100">{letter}</div>
-              {letterGroups[letter].map(adv => { const fi = filtered.indexOf(adv); return <button key={adv} onClick={() => handleSelect(adv)} onMouseEnter={() => setHighlightIdx(fi)} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${fi === highlightIdx ? 'bg-blue-50 text-[#0071CE] font-bold' : value === adv ? 'text-[#0071CE] font-bold bg-blue-50/50' : 'text-slate-700 hover:bg-slate-50 font-medium'}`}>{adv}</button>; })}
+              {letterGroups[letter].map(adv => { const fi = filtered.indexOf(adv); return <button key={adv} onClick={() => handleSelect(adv)} onMouseEnter={() => setHighlightIdx(fi)} className={`w-full text-left px-4 py-2.5 text-sm transition-colors ${fi === highlightIdx ? 'bg-blue-50 text-[#0053E2] font-bold' : value === adv ? 'text-[#0053E2] font-bold bg-blue-50/50' : 'text-slate-700 hover:bg-slate-50 font-medium'}`}>{adv}</button>; })}
             </div>
           ))}
         </div>
@@ -338,6 +346,8 @@ export default function App() {
   const [notes, setNotes] = useState('');
 
   const [pinnedState, setPinnedState] = useState(null);
+  const [currentPage, setCurrentPage] = useState('inventory-calendar');
+
   const stateRowRefs = useRef({});
 
   const gridScrollRef = useRef(null);
@@ -548,74 +558,129 @@ export default function App() {
 
   // --- Render ---
   return (
-    <div className="flex h-screen bg-slate-50 font-sans text-slate-900 overflow-hidden relative">
-      <aside className="w-16 flex flex-col items-center py-6 bg-[#004F91] border-r border-slate-200 gap-8 z-50 shrink-0 shadow-lg">
-        <div className="w-10 h-10 bg-[#FFC220] rounded-xl flex items-center justify-center text-[#004F91] font-bold text-lg shadow-inner">W</div>
-        <nav className="flex flex-col gap-6 text-white/60"><Calendar className="text-white cursor-pointer" size={22} /><User size={22} /><Bell size={22} /><div className="mt-auto"><HelpCircle size={22} /></div></nav>
-      </aside>
+    <div className="flex flex-col h-screen bg-slate-50 font-sans text-slate-900 relative">
+      {/* Top nav — full width, sits above sidebar */}
+      <header className="bg-white border-b border-[#E3E4E5] shrink-0 z-[500] flex items-center justify-between px-6 overflow-visible" style={{ height: 54 }}>
+        <div className="flex items-center gap-5">
+          <button className="w-6 h-6 flex items-center justify-center rounded-full hover:bg-slate-100 shrink-0">
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+              <rect x="0" y="0" width="2" height="2" fill="#2E2F32"/><rect x="0" y="5" width="2" height="2" fill="#2E2F32"/><rect x="0" y="10" width="2" height="2" fill="#2E2F32"/>
+              <rect x="5" y="0" width="2" height="2" fill="#2E2F32"/><rect x="5" y="5" width="2" height="2" fill="#2E2F32"/><rect x="5" y="10" width="2" height="2" fill="#2E2F32"/>
+              <rect x="10" y="0" width="2" height="2" fill="#2E2F32"/><rect x="10" y="5" width="2" height="2" fill="#2E2F32"/><rect x="10" y="10" width="2" height="2" fill="#2E2F32"/>
+            </svg>
+          </button>
+          <WalmartConnectLogo />
+        </div>
 
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden">
-        <header className="h-16 bg-white border-b border-slate-200 px-8 flex items-center justify-between shrink-0 z-40">
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900">Inventory Calendar</h1>
-          <div className="flex items-center gap-4 text-sm font-medium text-slate-500"><User size={18} className="text-slate-400" /><span>Sam Walton</span><ChevronDown size={14} /></div>
-        </header>
+        <div className="flex items-center gap-2">
+          <MediaSolutionsDropdown currentPage={currentPage} onNavigate={setCurrentPage} />
 
+          <span className="w-px h-5 bg-slate-200" />
+
+          <button className="flex items-center gap-1.5 px-3 h-8 rounded text-xs font-semibold text-slate-700 hover:bg-slate-100 border border-transparent hover:border-slate-200 transition-colors">
+            Kraft Heinz
+            <ChevronDown size={13} className="text-slate-400" />
+          </button>
+
+          <span className="w-px h-5 bg-slate-200" />
+
+          <div className="flex items-center gap-0.5">
+            <button className="relative w-8 h-8 flex items-center justify-center rounded-full text-slate-600 hover:bg-slate-100 transition-colors border-none bg-transparent cursor-pointer" aria-label="Notifications">
+              <Bell size={16} />
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-red-500" />
+            </button>
+            <button className="w-8 h-8 flex items-center justify-center rounded-full text-slate-600 hover:bg-slate-100 transition-colors border-none bg-transparent cursor-pointer" aria-label="Help">
+              <HelpCircle size={16} />
+            </button>
+            <button className="w-8 h-8 flex items-center justify-center rounded-full text-slate-600 hover:bg-slate-100 transition-colors border-none bg-transparent cursor-pointer" aria-label="Profile">
+              <User size={16} />
+            </button>
+          </div>
+          <LanguageSwitcher />
+        </div>
+      </header>
+
+      {/* Body row: sidebar + page content, filling remaining height */}
+      <div className="flex flex-1 min-h-0 overflow-hidden">
+        <AppSidebar onMenuItemClick={(id) => {
+          if (id === 'dashboard') setCurrentPage('inventory-calendar');
+          else if (id === 'campaigns' || id === 'campaigns-all' || id === 'campaigns-drafts' || id === 'campaigns-archived') setCurrentPage('sponsored-search');
+          else if (id === 'reports') setCurrentPage('unified-reports');
+          else if (id === 'inventory-calendar') setCurrentPage('inventory-calendar');
+          else if (id === 'ad-inventory') setCurrentPage('ad-inventory');
+          else if (id === 'inventory-policy') setCurrentPage('inventory-calendar');
+          else if (id === 'asset-library') setCurrentPage('inventory-calendar');
+          else if (id === 'creative-builder') setCurrentPage('shop-builder');
+        }} />
+
+        <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#F5F5F5]">
+          {currentPage === 'inventory-calendar' && <>
+            <div className="px-6 pt-6 pb-4 shrink-0 flex items-start justify-between gap-4">
+              <div>
+                <h1 className="text-[32px] font-bold text-[#2E2F32] leading-10">Inventory Calendar</h1>
+                <p className="text-[16px] text-[#74767C] mt-1">Select stores and weeks to reserve slots for your ads</p>
+              </div>
+              <button onClick={() => setIsReserving(true)} disabled={!canReserve} className={`shrink-0 mt-2 flex items-center gap-1.5 px-5 h-10 rounded-full font-bold text-[16px] transition-all ${canReserve ? 'bg-[#0053E2] text-white hover:bg-[#114AB6]' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}>
+                Reserve{selectionCount > 0 ? ` ${selectionCount.toLocaleString()}` : ''} slots
+              </button>
+            </div>
+
+        <div className="flex-1 flex flex-col min-h-0 mx-6 mb-6 rounded-lg border border-[#E3E4E5] shadow-[0_-1px_2px_0_rgba(0,0,0,0.10),0_1px_2px_1px_rgba(0,0,0,0.15)] overflow-hidden">
         {/* Toolbar */}
-        <div className="bg-white border-b border-slate-200 px-8 py-3 flex items-center shrink-0 z-[300] shadow-sm gap-3 overflow-visible">
-          <div className="flex-1 flex items-center bg-slate-100 border border-slate-200 rounded-xl h-11 relative min-w-0">
+        <div className="bg-white border-b border-[#E3E4E5] px-5 py-3 flex items-center shrink-0 z-[300] gap-2 overflow-visible">
+          <div className="flex-1 flex items-center bg-white border border-[#BABBBE] rounded-full h-8 relative min-w-0">
             <div className="relative h-full flex items-center" ref={searchTypeRef}>
-              <button onClick={() => setIsSearchTypeDropdownOpen(!isSearchTypeDropdownOpen)} className="flex items-center gap-2 px-4 py-2.5 text-sm text-slate-600 border-r border-slate-200 h-full rounded-l-xl hover:bg-slate-200 transition-colors">
+              <button onClick={() => setIsSearchTypeDropdownOpen(!isSearchTypeDropdownOpen)} className="flex items-center gap-2 px-3 py-1.5 text-sm text-[#2E2F32] border-r border-[#BABBBE] h-full rounded-l-full hover:bg-[#f1f1f2] transition-colors">
                 <Search size={16} /><span className="whitespace-nowrap font-normal text-slate-500">Search by <span className="font-bold text-slate-700">{searchType}</span></span><ChevronDown size={14} className={isSearchTypeDropdownOpen ? 'rotate-180' : ''} />
               </button>
-              {isSearchTypeDropdownOpen && <div className="absolute top-[110%] left-0 w-48 bg-white border border-slate-200 rounded-lg shadow-2xl z-[500] overflow-hidden">{['Store #','Store name','City'].map(t => <button key={t} onClick={() => { setSearchType(t); setIsSearchTypeDropdownOpen(false); setSearchTerm(''); }} className={`w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-blue-50 ${searchType === t ? 'text-[#0071CE] bg-blue-50 font-bold' : ''}`}>{t}</button>)}</div>}
+              {isSearchTypeDropdownOpen && <div className="absolute top-[110%] left-0 w-48 bg-white border border-[#E3E4E5] rounded shadow-[0px_4px_16px_rgba(0,0,0,0.12)] z-[500] overflow-hidden">{['Store #','Store name','City'].map(t => <button key={t} onClick={() => { setSearchType(t); setIsSearchTypeDropdownOpen(false); setSearchTerm(''); }} className={`w-full text-left px-4 py-2.5 text-sm font-medium hover:bg-blue-50 ${searchType === t ? 'text-[#0053E2] bg-blue-50 font-bold' : ''}`}>{t}</button>)}</div>}
             </div>
             <input type="text" placeholder={searchType === 'Store #' ? 'e.g. 1001, 2045...' : searchType === 'Store name' ? 'e.g. Store #1001...' : 'e.g. Houston, Dallas...'} className="flex-1 bg-transparent px-4 py-2.5 text-sm outline-none font-medium text-slate-800 h-full" value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} />
             {searchTerm && <button onClick={() => setSearchTerm('')} className="p-2 text-slate-400 hover:text-slate-600 mr-1"><X size={14} strokeWidth={3} /></button>}
           </div>
 
           <div className="relative shrink-0" ref={filterPanelRef}>
-            <button onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)} className={`flex items-center gap-2 px-4 h-11 border rounded-lg text-sm font-bold transition-all ${(filterState || filterCity) ? 'border-[#0071CE] text-[#0071CE] bg-blue-50' : 'border-slate-300 text-slate-600 hover:bg-slate-50'}`}>
-              <FilterIcon size={16} /> Filters {(filterState || filterCity) && <span className="bg-[#0071CE] text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">{[filterState, filterCity].filter(Boolean).length}</span>}
+            <button onClick={() => setIsFilterPanelOpen(!isFilterPanelOpen)} className={`flex items-center gap-2 px-3 h-8 border rounded-full text-[14px] font-normal transition-all ${(filterState || filterCity) ? 'border-2 border-[#0053E2] text-[#2E2F32] bg-[#E9F1FE]' : 'border-[#2e2f32] text-[#2E2F32] hover:bg-[#f1f1f2]'}`}>
+              <FilterIcon size={16} /> Filters {(filterState || filterCity) && <span className="bg-[#0053E2] text-white text-[10px] font-black px-1.5 py-0.5 rounded-full">{[filterState, filterCity].filter(Boolean).length}</span>}
             </button>
             {isFilterPanelOpen && (
-              <div className="absolute top-full right-0 mt-2 w-[320px] bg-white border border-slate-200 rounded-xl shadow-2xl z-[600] p-5 space-y-4">
+              <div className="absolute top-full right-0 mt-2 w-[320px] bg-white border border-[#E3E4E5] rounded-lg shadow-[0px_4px_16px_rgba(0,0,0,0.12)] z-[600] p-5 space-y-4">
                 <div className="flex items-center justify-between"><span className="text-sm font-black text-slate-700 uppercase tracking-tight">Filter Stores</span>{(filterState || filterCity) && <button onClick={() => { setFilterState(''); setFilterCity(''); }} className="text-[11px] font-bold text-rose-600 underline">Clear</button>}</div>
-                <div className="space-y-1.5"><label className="text-[11px] font-black text-slate-400 uppercase tracking-tight">State</label><select value={filterState} onChange={e => { setFilterState(e.target.value); setFilterCity(''); }} className="w-full h-10 px-3 border border-slate-300 rounded-lg text-sm font-bold outline-none focus:border-[#0071CE] bg-white"><option value="">All states</option>{Object.keys(STATE_DATA).sort().map(st => <option key={st} value={st}>{STATE_DATA[st]?.name} ({(STORES_BY_STATE[st] || []).length})</option>)}</select></div>
-                <div className="space-y-1.5"><label className="text-[11px] font-black text-slate-400 uppercase tracking-tight">City</label><select value={filterCity} onChange={e => setFilterCity(e.target.value)} className="w-full h-10 px-3 border border-slate-300 rounded-lg text-sm font-bold outline-none focus:border-[#0071CE] bg-white"><option value="">All cities</option>{[...new Set((filterState ? STORES_BY_STATE[filterState] || [] : ALL_STORES).map(s => s.city))].sort().map(c => <option key={c} value={c}>{c}</option>)}</select></div>
+                <div className="space-y-1.5"><label className="text-[11px] font-black text-slate-400 uppercase tracking-tight">State</label><select value={filterState} onChange={e => { setFilterState(e.target.value); setFilterCity(''); }} className="w-full h-10 px-3 border border-slate-300 rounded-lg text-sm font-bold outline-none focus:border-[#0053E2] bg-white"><option value="">All states</option>{Object.keys(STATE_DATA).sort().map(st => <option key={st} value={st}>{STATE_DATA[st]?.name} ({(STORES_BY_STATE[st] || []).length})</option>)}</select></div>
+                <div className="space-y-1.5"><label className="text-[11px] font-black text-slate-400 uppercase tracking-tight">City</label><select value={filterCity} onChange={e => setFilterCity(e.target.value)} className="w-full h-10 px-3 border border-slate-300 rounded-lg text-sm font-bold outline-none focus:border-[#0053E2] bg-white"><option value="">All cities</option>{[...new Set((filterState ? STORES_BY_STATE[filterState] || [] : ALL_STORES).map(s => s.city))].sort().map(c => <option key={c} value={c}>{c}</option>)}</select></div>
                 <div className="pt-2 border-t border-slate-100 text-xs font-bold text-slate-500">{filteredStores.length.toLocaleString()} stores match</div>
               </div>
             )}
           </div>
 
           <div className="relative shrink-0" ref={weekFilterRef}>
-            <button onClick={() => setIsWeekFilterOpen(!isWeekFilterOpen)} className={`flex items-center gap-2 px-4 h-11 border rounded-lg text-sm font-bold transition-all ${isWeekFilterOpen ? 'border-[#0071CE] text-[#0071CE] bg-blue-50 shadow-sm' : 'border-slate-300 text-slate-600 hover:bg-slate-50'}`}>{weekFilterButtonLabel} <ChevronDown size={14} className={isWeekFilterOpen ? 'rotate-180' : ''} /></button>
+            <button onClick={() => setIsWeekFilterOpen(!isWeekFilterOpen)} className={`flex items-center gap-2 px-3 h-8 border rounded-full text-[14px] font-normal transition-all ${isWeekFilterOpen ? 'border-2 border-[#0053E2] text-[#2E2F32] bg-[#E9F1FE]' : 'border-[#2e2f32] text-[#2E2F32] hover:bg-[#f1f1f2]'}`}>{weekFilterButtonLabel} <ChevronDown size={14} className={isWeekFilterOpen ? 'rotate-180' : ''} /></button>
             {isWeekFilterOpen && (
-              <div className="absolute top-full right-0 mt-2 w-[480px] bg-white border border-slate-200 rounded-xl shadow-2xl z-[600] p-6">
+              <div className="absolute top-full right-0 mt-2 w-[480px] bg-white border border-[#E3E4E5] rounded-lg shadow-[0px_4px_16px_rgba(0,0,0,0.12)] z-[600] p-6">
                 <div className="space-y-5">
                   {[{ id: '52running', label: '52 running weeks' },{ id: 'fy2026', label: 'FY 2026' },{ id: 'fy2027', label: 'FY 2027' },{ id: 'custom', label: 'Custom week range' }].map(opt => (
-                    <label key={opt.id} className="flex items-center gap-4 cursor-pointer"><div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${weekFilterMode === opt.id ? 'border-[#0071CE]' : 'border-slate-300'}`}>{weekFilterMode === opt.id && <div className="w-2.5 h-2.5 rounded-full bg-[#0071CE]" />}</div><input type="radio" className="sr-only" checked={weekFilterMode === opt.id} onChange={() => setWeekFilterMode(opt.id)} /><span className="text-sm font-black text-slate-800">{opt.label}</span></label>
+                    <label key={opt.id} className="flex items-center gap-4 cursor-pointer"><div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${weekFilterMode === opt.id ? 'border-[#0053E2]' : 'border-slate-300'}`}>{weekFilterMode === opt.id && <div className="w-2.5 h-2.5 rounded-full bg-[#0053E2]" />}</div><input type="radio" className="sr-only" checked={weekFilterMode === opt.id} onChange={() => setWeekFilterMode(opt.id)} /><span className="text-sm font-black text-slate-800">{opt.label}</span></label>
                   ))}
                   <div className={`grid grid-cols-2 gap-6 pt-2 transition-opacity ${weekFilterMode === 'custom' ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
-                    <div className="space-y-1.5"><label className="text-[10px] font-black text-slate-400 uppercase">Start week</label><input type="date" value={customDates.start} onChange={(e) => setCustomDates({ ...customDates, start: e.target.value })} className="w-full h-11 px-3 border border-slate-300 rounded-lg text-sm font-bold outline-none focus:border-[#0071CE]" /></div>
-                    <div className="space-y-1.5"><label className="text-[10px] font-black text-slate-400 uppercase">End week</label><input type="date" value={customDates.end} onChange={(e) => setCustomDates({ ...customDates, end: e.target.value })} className="w-full h-11 px-3 border border-slate-300 rounded-lg text-sm font-bold outline-none focus:border-[#0071CE]" /></div>
+                    <div className="space-y-1.5"><label className="text-[10px] font-black text-slate-400 uppercase">Start week</label><input type="date" value={customDates.start} onChange={(e) => setCustomDates({ ...customDates, start: e.target.value })} className="w-full h-11 px-3 border border-slate-300 rounded-lg text-sm font-bold outline-none focus:border-[#0053E2]" /></div>
+                    <div className="space-y-1.5"><label className="text-[10px] font-black text-slate-400 uppercase">End week</label><input type="date" value={customDates.end} onChange={(e) => setCustomDates({ ...customDates, end: e.target.value })} className="w-full h-11 px-3 border border-slate-300 rounded-lg text-sm font-bold outline-none focus:border-[#0053E2]" /></div>
                   </div>
                   <div className="text-[11px] font-bold text-slate-400 h-4">{weekFilterMode === 'custom' ? `Walmart ${translatedWeeksRange.label}` : ''}</div>
-                  <div className="flex justify-end gap-4 pt-4 border-t border-slate-200"><button onClick={() => setIsWeekFilterOpen(false)} className="text-sm font-bold text-slate-500">Cancel</button><button onClick={() => setIsWeekFilterOpen(false)} className="px-8 py-2.5 bg-[#0071CE] text-white rounded-full font-black text-sm hover:bg-[#004F91] shadow-md">Apply</button></div>
+                  <div className="flex justify-end gap-4 pt-4 border-t border-slate-200"><button onClick={() => setIsWeekFilterOpen(false)} className="text-sm font-bold text-slate-500">Cancel</button><button onClick={() => setIsWeekFilterOpen(false)} className="px-8 py-2.5 bg-[#0053E2] text-white rounded-full font-black text-sm hover:bg-[#114AB6] shadow-md">Apply</button></div>
                 </div>
               </div>
             )}
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
-            <button onMouseEnter={(e) => setActionTooltip({ tip: 'Upload CSV', rect: e.currentTarget.getBoundingClientRect() })} onMouseLeave={() => setActionTooltip(null)} className="p-2.5 text-slate-500 border border-slate-300 rounded-lg hover:bg-blue-50"><Upload size={18} /></button>
-            <button onMouseEnter={(e) => setActionTooltip({ tip: 'Download CSV', rect: e.currentTarget.getBoundingClientRect() })} onMouseLeave={() => setActionTooltip(null)} className="p-2.5 text-slate-500 border border-slate-300 rounded-lg hover:bg-blue-50"><Download size={18} /></button>
+            <button onMouseEnter={(e) => setActionTooltip({ tip: 'Upload CSV', rect: e.currentTarget.getBoundingClientRect() })} onMouseLeave={() => setActionTooltip(null)} className="w-8 h-8 flex items-center justify-center text-[#2E2F32] border border-[#2e2f32] rounded-full hover:bg-[#f1f1f2] transition-colors"><Upload size={16} /></button>
+            <button onMouseEnter={(e) => setActionTooltip({ tip: 'Download CSV', rect: e.currentTarget.getBoundingClientRect() })} onMouseLeave={() => setActionTooltip(null)} className="w-8 h-8 flex items-center justify-center text-[#2E2F32] border border-[#2e2f32] rounded-full hover:bg-[#f1f1f2] transition-colors"><Download size={16} /></button>
           </div>
 
-          <button onClick={() => setIsReserving(true)} disabled={!canReserve} className={`ml-4 px-8 h-11 rounded-xl text-sm font-black shadow-lg min-w-[180px] transition-all shrink-0 ${canReserve ? 'bg-[#0071CE] text-white shadow-[#0071CE]/20 hover:bg-[#004F91]' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}>Reserve {selectionCount > 0 ? selectionCount.toLocaleString() : ''} slots</button>
         </div>
 
         {/* Legend + Summary */}
-        <div className="px-8 py-3 bg-white border-b border-slate-100 flex items-center justify-between shrink-0 z-20">
+        <div className="px-5 py-3 bg-white border-b border-[#E3E4E5] flex items-center justify-between shrink-0 z-20">
           <div className="flex items-center gap-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">
             <div className="flex items-center gap-2.5"><div className="w-5 h-5 rounded bg-rose-50 border border-rose-200 flex items-center justify-center text-rose-600"><Lock size={12} strokeWidth={3} /></div>Booked</div>
             <div className="flex items-center gap-2.5"><div className="w-5 h-5 rounded bg-amber-50 border border-amber-200 flex items-center justify-center text-amber-600"><Clock size={12} strokeWidth={3} /></div>IO in progress</div>
@@ -623,8 +688,8 @@ export default function App() {
             <div className="flex items-center gap-2.5"><div className="w-5 h-5 rounded bg-slate-50 border border-slate-300 flex items-center justify-center text-slate-400"><Square size={12} strokeWidth={3} /></div>Blank</div>
           </div>
           <div className="flex items-center gap-2 flex-wrap">
-            {selectedStores.size > 0 && <div className="flex items-center bg-[#E5F1FF] text-[#0071CE] px-3 py-1.5 rounded-full text-xs font-black border border-blue-100 shadow-sm"><Store size={14} className="mr-1.5" />{selectedStores.size.toLocaleString()} stores<button onClick={() => setSelectedStores(new Set())} className="ml-2 hover:text-[#004F91]"><X size={14} strokeWidth={4} /></button></div>}
-            {weekRange.start && <div className="flex items-center bg-[#E5F1FF] text-[#0071CE] px-3 py-1.5 rounded-full text-xs font-black border border-blue-100 shadow-sm">WM Week {activeRange?.min}{activeRange && activeRange.max > activeRange.min ? ` - ${activeRange.max}` : ''}<button onClick={() => setWeekRange({ start: null, end: null })} className="ml-2 hover:text-[#004F91]"><X size={14} strokeWidth={4} /></button></div>}
+            {selectedStores.size > 0 && <div className="flex items-center bg-[#E5F1FF] text-[#0053E2] px-3 py-1.5 rounded-full text-xs font-black border border-blue-100 shadow-sm"><Store size={14} className="mr-1.5" />{selectedStores.size.toLocaleString()} stores<button onClick={() => setSelectedStores(new Set())} className="ml-2 hover:text-[#114AB6]"><X size={14} strokeWidth={4} /></button></div>}
+            {weekRange.start && <div className="flex items-center bg-[#E5F1FF] text-[#0053E2] px-3 py-1.5 rounded-full text-xs font-black border border-blue-100 shadow-sm">WM Week {activeRange?.min}{activeRange && activeRange.max > activeRange.min ? ` - ${activeRange.max}` : ''}<button onClick={() => setWeekRange({ start: null, end: null })} className="ml-2 hover:text-[#114AB6]"><X size={14} strokeWidth={4} /></button></div>}
             {(selectedStores.size > 0 || weekRange.start || viewFilter !== 'all') && <button onClick={() => { setSelectedStores(new Set()); setWeekRange({ start: null, end: null }); setViewFilter('all'); setAvailableSubs(new Set()); }} className="text-[11px] font-black uppercase text-rose-600 hover:text-rose-800 underline ml-2">Clear all</button>}
           </div>
         </div>
@@ -636,24 +701,24 @@ export default function App() {
               <tr className="sticky top-0 z-[200]">
                 <th className={`sticky left-0 z-[210] bg-[#F1F5F9] border-b border-r border-slate-200 p-0 text-left w-[360px] shadow-[4px_0_6px_-2px_rgba(0,0,0,0.1)] ${isScrolled ? 'shadow-[4px_4px_6px_-2px_rgba(0,0,0,0.1)]' : ''}`}>
                   <div className="flex items-center gap-3 p-4">
-                    <button onClick={selectAllFiltered} className="text-slate-400 hover:text-[#0071CE] shrink-0">{allFilteredSelected ? <CheckSquare size={18} className="text-[#0071CE]" /> : someFilteredSelected ? <MinusSquare size={18} className="text-[#0071CE]" /> : <Square size={18} />}</button>
+                    <button onClick={selectAllFiltered} className="text-slate-400 hover:text-[#0053E2] shrink-0">{allFilteredSelected ? <CheckSquare size={18} className="text-[#0053E2]" /> : someFilteredSelected ? <MinusSquare size={18} className="text-[#0053E2]" /> : <Square size={18} />}</button>
                     <StoresLabel text={`${isAnyFilterActive ? 'Filtered' : 'All'} Stores`} count={filteredStores.length.toLocaleString()} />
                     <div className="relative ml-auto shrink-0" ref={viewFilterRef}>
-                      <button onClick={() => setIsViewFilterOpen(!isViewFilterOpen)} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all ${viewFilter !== 'all' ? 'bg-blue-50 text-[#0071CE] border border-blue-100 shadow-sm' : 'hover:bg-slate-200 text-slate-400'}`}>{viewFilter !== 'all' && <span className="text-[10px] font-black uppercase mr-1">{viewFilter === 'available' && availableSubs.size > 0 && availableSubs.size < 3 ? [...availableSubs].map(s => s === 'io' ? 'IO' : s.charAt(0).toUpperCase() + s.slice(1)).join(', ') : viewFilter === 'available' ? 'Available' : viewFilter}</span>}<Eye size={16} strokeWidth={3} /></button>
+                      <button onClick={() => setIsViewFilterOpen(!isViewFilterOpen)} className={`flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg transition-all ${viewFilter !== 'all' ? 'bg-blue-50 text-[#0053E2] border border-blue-100 shadow-sm' : 'hover:bg-slate-200 text-slate-400'}`}>{viewFilter !== 'all' && <span className="text-[10px] font-black uppercase mr-1">{viewFilter === 'available' && availableSubs.size > 0 && availableSubs.size < 3 ? [...availableSubs].map(s => s === 'io' ? 'IO' : s.charAt(0).toUpperCase() + s.slice(1)).join(', ') : viewFilter === 'available' ? 'Available' : viewFilter}</span>}<Eye size={16} strokeWidth={3} /></button>
                       {isViewFilterOpen && createPortal(
                         <div ref={viewFilterDropdownRef} className="fixed w-64 bg-white border border-slate-200 rounded-lg shadow-2xl z-[9999]" style={(() => { const r = viewFilterRef.current?.closest('th')?.getBoundingClientRect(); return r ? { top: r.bottom - 12, left: r.right - 256 - 16 + 150 } : {}; })()}>
                           <div className="px-4 py-3 border-b bg-slate-50 font-black text-sm uppercase text-slate-600 tracking-tight flex items-center gap-2"><Eye size={16} /> View by</div>
                           {[{v:'all',l:'View all / Reset'},{v:'selected',l:'Selected only'}].map(o => (
-                            <button key={o.v} onClick={() => { setViewFilter(o.v); setAvailableSubs(new Set()); setIsViewFilterOpen(false); }} disabled={o.v === 'selected' && selectedStores.size === 0} className={`w-full flex items-center gap-3 px-4 py-3 text-[11px] font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed ${viewFilter === o.v ? 'bg-blue-50 text-[#0071CE]' : 'text-slate-700 hover:bg-slate-50'}`}>
-                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${viewFilter === o.v ? 'border-[#0071CE]' : 'border-slate-300'}`}>{viewFilter === o.v && <div className="w-2 h-2 rounded-full bg-[#0071CE]" />}</div>{o.l}
+                            <button key={o.v} onClick={() => { setViewFilter(o.v); setAvailableSubs(new Set()); setIsViewFilterOpen(false); }} disabled={o.v === 'selected' && selectedStores.size === 0} className={`w-full flex items-center gap-3 px-4 py-3 text-[11px] font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed ${viewFilter === o.v ? 'bg-blue-50 text-[#0053E2]' : 'text-slate-700 hover:bg-slate-50'}`}>
+                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${viewFilter === o.v ? 'border-[#0053E2]' : 'border-slate-300'}`}>{viewFilter === o.v && <div className="w-2 h-2 rounded-full bg-[#0053E2]" />}</div>{o.l}
                             </button>
                           ))}
                           <div className="border-t border-slate-100">
                             <button onClick={() => {
                               if (viewFilter === 'available' && availableSubs.size === 3) { setViewFilter('all'); setAvailableSubs(new Set()); }
                               else { setViewFilter('available'); setAvailableSubs(new Set(['blank','io','interest'])); }
-                            }} className={`w-full flex items-center gap-3 px-4 py-3 text-[11px] font-bold transition-all ${viewFilter === 'available' ? 'bg-blue-50 text-[#0071CE]' : 'text-slate-700 hover:bg-slate-50'}`}>
-                              <div className="shrink-0">{viewFilter === 'available' && availableSubs.size === 3 ? <CheckSquare size={16} className="text-[#0071CE]" /> : viewFilter === 'available' && availableSubs.size > 0 ? <MinusSquare size={16} className="text-[#0071CE]" /> : <Square size={16} className="text-slate-300" />}</div>Available only
+                            }} className={`w-full flex items-center gap-3 px-4 py-3 text-[11px] font-bold transition-all ${viewFilter === 'available' ? 'bg-blue-50 text-[#0053E2]' : 'text-slate-700 hover:bg-slate-50'}`}>
+                              <div className="shrink-0">{viewFilter === 'available' && availableSubs.size === 3 ? <CheckSquare size={16} className="text-[#0053E2]" /> : viewFilter === 'available' && availableSubs.size > 0 ? <MinusSquare size={16} className="text-[#0053E2]" /> : <Square size={16} className="text-slate-300" />}</div>Available only
                             </button>
                             {[{k:'blank',label:'Blank',icon:<Square size={12} strokeWidth={3} className="text-slate-400" />},{k:'io',label:'IO in Progress',icon:<Clock size={12} strokeWidth={3} className="text-amber-600" />},{k:'interest',label:'Interest',icon:<Zap size={12} className="text-green-700 fill-green-700/20" />}].map(sub => {
                               const isChecked = viewFilter === 'available' && availableSubs.has(sub.k);
@@ -663,16 +728,16 @@ export default function App() {
                                   if (isChecked) { next.delete(sub.k); } else { next.add(sub.k); }
                                   if (next.size === 0) { setViewFilter('all'); setAvailableSubs(new Set()); }
                                   else { setViewFilter('available'); setAvailableSubs(next); }
-                                }} className={`w-full flex items-center gap-3 pl-11 pr-4 py-2.5 text-[11px] font-bold transition-all ${isChecked ? 'bg-blue-50 text-[#0071CE]' : 'text-slate-600 hover:bg-slate-50'}`}>
-                                  <div className="shrink-0">{isChecked ? <CheckSquare size={14} className="text-[#0071CE]" /> : <Square size={14} className="text-slate-300" />}</div>
+                                }} className={`w-full flex items-center gap-3 pl-11 pr-4 py-2.5 text-[11px] font-bold transition-all ${isChecked ? 'bg-blue-50 text-[#0053E2]' : 'text-slate-600 hover:bg-slate-50'}`}>
+                                  <div className="shrink-0">{isChecked ? <CheckSquare size={14} className="text-[#0053E2]" /> : <Square size={14} className="text-slate-300" />}</div>
                                   {sub.icon}<span>{sub.label}</span>
                                 </button>
                               );
                             })}
                           </div>
                           <div className="border-t border-slate-100">
-                            <button onClick={() => { setViewFilter('unavailable'); setAvailableSubs(new Set()); setIsViewFilterOpen(false); }} disabled={!weekRange.start} className={`w-full flex items-center gap-3 px-4 py-3 text-[11px] font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed ${viewFilter === 'unavailable' ? 'bg-blue-50 text-[#0071CE]' : 'text-slate-700 hover:bg-slate-50'}`}>
-                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${viewFilter === 'unavailable' ? 'border-[#0071CE]' : 'border-slate-300'}`}>{viewFilter === 'unavailable' && <div className="w-2 h-2 rounded-full bg-[#0071CE]" />}</div>Unavailable only
+                            <button onClick={() => { setViewFilter('unavailable'); setAvailableSubs(new Set()); setIsViewFilterOpen(false); }} disabled={!weekRange.start} className={`w-full flex items-center gap-3 px-4 py-3 text-[11px] font-bold transition-all disabled:opacity-30 disabled:cursor-not-allowed ${viewFilter === 'unavailable' ? 'bg-blue-50 text-[#0053E2]' : 'text-slate-700 hover:bg-slate-50'}`}>
+                              <div className={`w-4 h-4 rounded-full border-2 flex items-center justify-center ${viewFilter === 'unavailable' ? 'border-[#0053E2]' : 'border-slate-300'}`}>{viewFilter === 'unavailable' && <div className="w-2 h-2 rounded-full bg-[#0053E2]" />}</div>Unavailable only
                             </button>
                           </div>
                         </div>
@@ -686,13 +751,13 @@ export default function App() {
                   const blocked = isWeekDisabled(week.id);
                   let bg = 'bg-[#F1F5F9]';
                   if (blocked) bg = isColHovered ? 'bg-rose-100' : 'bg-rose-50';
-                  else if (inRange) bg = 'bg-[#0071CE] shadow-md';
+                  else if (inRange) bg = 'bg-[#0053E2] shadow-md';
                   else if (isColHovered) bg = 'bg-[#E5EAF5]';
                   return (
                     <th key={week.dates} onClick={() => handleWeekHeaderClick(week.id)} onMouseEnter={() => setActiveCursor({ storeId: null, weekId: week.id })} className={`sticky top-0 p-0 border-b border-slate-200 w-[150px] transition-all z-[200] group ${bg} ${blocked ? 'cursor-not-allowed' : 'cursor-pointer'} ${isScrolled ? 'shadow-[0_4px_6px_-2px_rgba(0,0,0,0.1)]' : ''}`}>
                       <div className={`py-5 flex flex-col items-center relative ${blocked ? 'pointer-events-none' : ''}`}>
                         {blocked && <Lock size={16} className="absolute top-1 text-rose-600" />}
-                        {isColHovered && !weekRange.end && !blocked && <div className="absolute top-1"><Plus size={20} strokeWidth={3} className="text-[#0071CE]" /></div>}
+                        {isColHovered && !weekRange.end && !blocked && <div className="absolute top-1"><Plus size={20} strokeWidth={3} className="text-[#0053E2]" /></div>}
                         <span className={`text-sm font-black ${blocked ? 'text-rose-600' : inRange ? 'text-white' : 'text-slate-900'}`}>{week.label}</span>
                         <span className={`text-[10px] font-bold ${blocked ? 'text-rose-600 opacity-80' : inRange ? 'text-blue-100' : 'text-slate-500'}`}>{week.dates}</span>
                       </div>
@@ -713,13 +778,13 @@ export default function App() {
                     <tr>
                       <td ref={el => { stateRowRefs.current[st] = el; }} data-state-header={st} className="sticky left-0 z-[95] border-b border-r border-slate-200 p-0 bg-[#F8FAFC] shadow-[4px_0_6px_-2px_rgba(0,0,0,0.1)]">
                         <div className="flex items-center gap-3 px-4 py-2.5">
-                          <button onClick={() => selectAllInState(st)} className="shrink-0 text-slate-400 hover:text-[#0071CE]">{allStateSel ? <CheckSquare size={16} className="text-[#0071CE]" /> : stateSelCount > 0 ? <MinusSquare size={16} className="text-[#0071CE]" /> : <Square size={16} />}</button>
+                          <button onClick={() => selectAllInState(st)} className="shrink-0 text-slate-400 hover:text-[#0053E2]">{allStateSel ? <CheckSquare size={16} className="text-[#0053E2]" /> : stateSelCount > 0 ? <MinusSquare size={16} className="text-[#0053E2]" /> : <Square size={16} />}</button>
                           <button onClick={() => toggleStateExpand(st)} className="flex items-center gap-2 flex-1 min-w-0">
                             <ChevronRight size={16} className={`text-slate-400 transition-transform shrink-0 ${isExpanded ? 'rotate-90' : ''}`} />
                             <MapPin size={14} className="text-slate-400 shrink-0" />
                             <span className="text-[13px] font-black text-slate-700">{STATE_DATA[st]?.name}</span>
                             <span className="text-[11px] font-bold text-slate-400">{stores.length} stores</span>
-                            {stateSelCount > 0 && <span className="text-[10px] font-black text-[#0071CE] bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">{stateSelCount} selected</span>}
+                            {stateSelCount > 0 && <span className="text-[10px] font-black text-[#0053E2] bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">{stateSelCount} selected</span>}
                           </button>
                         </div>
                       </td>
@@ -737,11 +802,11 @@ export default function App() {
                         <tr key={store.id} className="group/row">
                           <td onClick={() => toggleStore(store.id)} onMouseEnter={() => setActiveCursor({ storeId: store.id, weekId: null })} className={`sticky left-0 z-[90] border-b border-r border-slate-200 p-4 transition-all shadow-[4px_0_6px_-2px_rgba(0,0,0,0.1)] ${rowBg} ${blockedStore ? 'cursor-not-allowed' : 'cursor-pointer'}`}>
                             <div className="flex items-center gap-3">
-                              <div className={`transition-colors ${isSelected ? 'text-[#0071CE]' : blockedStore ? 'text-rose-600' : 'text-slate-400 group-hover/row:text-[#0071CE]'}`}>
+                              <div className={`transition-colors ${isSelected ? 'text-[#0053E2]' : blockedStore ? 'text-rose-600' : 'text-slate-400 group-hover/row:text-[#0053E2]'}`}>
                                 {blockedStore ? <Lock size={18} /> : isSelected ? <CheckSquare size={18} /> : <Square size={18} />}
                               </div>
                               <div className="flex flex-col">
-                                <span className={`text-sm font-bold ${isSelected ? 'text-[#004F91]' : blockedStore ? 'text-rose-950' : 'text-slate-900'}`}>Store #{store.id} — {store.city}</span>
+                                <span className={`text-sm font-bold ${isSelected ? 'text-[#0053E2]' : blockedStore ? 'text-rose-950' : 'text-slate-900'}`}>Store #{store.id} — {store.city}</span>
                                 <span className="text-[11px] font-bold text-slate-400 uppercase tracking-tight">{store.format} • {store.state} {store.zip}</span>
                               </div>
                             </div>
@@ -769,7 +834,7 @@ export default function App() {
 
                             if (isSelectedCell) {
                               bg = isBooked ? 'bg-rose-100' : (cellData?.ios?.length > 0) ? 'bg-amber-100' : (cellData?.interests?.length > 0) ? 'bg-green-100' : 'bg-blue-50';
-                              ring = 'ring-2 ring-inset ring-[#0071CE]'; z = 'z-10';
+                              ring = 'ring-2 ring-inset ring-[#0053E2]'; z = 'z-10';
                             }
 
                             const isDisabledCell = isBooked || blockedStore || blockedWeek;
@@ -784,8 +849,8 @@ export default function App() {
                                       <span className={`text-[10px] font-black uppercase leading-tight line-clamp-2 ${isBooked ? 'text-rose-900' : (cellData?.ios?.length > 0 ? 'text-amber-900' : (cellData?.interests?.length > 0 ? 'text-green-800' : 'text-slate-800'))}`}>{isBooked ? cellData.booked.advertiser : (cellData?.ios?.length > 0 ? cellData.ios[0].advertiser : (cellData?.interests?.length > 0 ? cellData.interests[0].advertiser : ''))}</span>
                                     </div>
                                   )}
-                                  {hasActivity && !isSelectedCell && <button className="pointer-events-auto mt-auto flex items-center gap-1.5 text-[#0071CE] underline font-black text-[13px] hover:text-[#004F91] bg-transparent border-none p-0 opacity-0 group-hover/slot:opacity-100" onClick={(e) => { e.stopPropagation(); setViewDetailSlot({ storeId: store.id, weekId: week.id }); }}><Eye size={15} strokeWidth={3} /> View detail</button>}
-                                  {isSelectedCell && !isBooked && <div className="absolute inset-0 flex items-center justify-center pointer-events-none"><div className="w-7 h-7 bg-[#0071CE] rounded-lg flex items-center justify-center shadow-lg border-2 border-white"><Check size={14} className="text-white" strokeWidth={4} /></div></div>}
+                                  {hasActivity && !isSelectedCell && <button className="pointer-events-auto mt-auto flex items-center gap-1.5 text-[#0053E2] underline font-black text-[13px] hover:text-[#114AB6] bg-transparent border-none p-0 opacity-0 group-hover/slot:opacity-100" onClick={(e) => { e.stopPropagation(); setViewDetailSlot({ storeId: store.id, weekId: week.id }); }}><Eye size={15} strokeWidth={3} /> View detail</button>}
+                                  {isSelectedCell && !isBooked && <div className="absolute inset-0 flex items-center justify-center pointer-events-none"><div className="w-7 h-7 bg-[#0053E2] rounded-lg flex items-center justify-center shadow-lg border-2 border-white"><Check size={14} className="text-white" strokeWidth={4} /></div></div>}
                                 </div>
                               </td>
                             );
@@ -799,6 +864,7 @@ export default function App() {
             </tbody>
           </table>
         </div>
+        </div>
         {pinnedState && expandedStates.has(pinnedState) && (() => {
           const stores = filteredByState[pinnedState] || [];
           const stateSelCount = stores.filter(s => selectedStores.has(s.id)).length;
@@ -808,21 +874,29 @@ export default function App() {
           if (!rect) return null;
           return (
             <div className="fixed z-[195] bg-white/98 backdrop-blur-md border-b border-r border-slate-200 shadow-[0_4px_12px_-2px_rgba(0,0,0,0.12),4px_0_6px_-2px_rgba(0,0,0,0.08)]" style={{ top: rect.top + 73, left: rect.left, width: 360 }}>
-              <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#0071CE] rounded-r" />
+              <div className="absolute left-0 top-0 bottom-0 w-[3px] bg-[#0053E2] rounded-r" />
               <div className="flex items-center gap-3 px-4 py-2.5 bg-gradient-to-r from-blue-50/60 to-transparent">
-                <button onClick={() => selectAllInState(pinnedState)} className="shrink-0 text-slate-400 hover:text-[#0071CE]">{allStateSel ? <CheckSquare size={16} className="text-[#0071CE]" /> : stateSelCount > 0 ? <MinusSquare size={16} className="text-[#0071CE]" /> : <Square size={16} />}</button>
+                <button onClick={() => selectAllInState(pinnedState)} className="shrink-0 text-slate-400 hover:text-[#0053E2]">{allStateSel ? <CheckSquare size={16} className="text-[#0053E2]" /> : stateSelCount > 0 ? <MinusSquare size={16} className="text-[#0053E2]" /> : <Square size={16} />}</button>
                 <button onClick={() => toggleStateExpand(pinnedState)} className="flex items-center gap-2 flex-1 min-w-0">
                   <ChevronRight size={16} className="text-slate-400 transition-transform shrink-0 rotate-90" />
                   <MapPin size={14} className="text-slate-400 shrink-0" />
                   <span className="text-[13px] font-black text-slate-700">{STATE_DATA[pinnedState]?.name}</span>
                   <span className="text-[11px] font-bold text-slate-400">{stores.length} stores</span>
-                  {stateSelCount > 0 && <span className="text-[10px] font-black text-[#0071CE] bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">{stateSelCount} selected</span>}
+                  {stateSelCount > 0 && <span className="text-[10px] font-black text-[#0053E2] bg-blue-50 px-2 py-0.5 rounded-full border border-blue-100">{stateSelCount} selected</span>}
                 </button>
               </div>
             </div>
           );
         })()}
-      </main>
+          </>}
+          {currentPage === 'sponsored-search' && <SponsoredSearch onNavigate={setCurrentPage} />}
+          {currentPage === 'display-advertising' && <DisplayAdvertising onNavigate={setCurrentPage} />}
+          {currentPage === 'ad-inventory' && <AdInventory onNavigate={setCurrentPage} />}
+          {currentPage !== 'inventory-calendar' && currentPage !== 'sponsored-search' && currentPage !== 'display-advertising' && currentPage !== 'ad-inventory' && (
+            <StubPage pageId={currentPage} onNavigate={setCurrentPage} />
+          )}
+        </main>
+      </div>{/* end body row */}
 
       {/* Detail Slider */}
       <div className={`fixed inset-y-0 right-0 w-[900px] bg-white shadow-2xl border-l border-slate-200 z-[2000] transform transition-transform duration-500 ${viewDetailSlot ? 'translate-x-0' : 'translate-x-full'}`}>
@@ -841,10 +915,10 @@ export default function App() {
                   <div className="w-[17%] flex items-center justify-end gap-1.5 pr-12"><span>ACTIONS</span><div className="group relative flex items-center"><Info size={12} className="text-slate-400 cursor-help" /><div className="fixed z-[4000] p-2.5 bg-slate-900 text-white text-[10px] font-medium rounded shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none transform translate-x-[-105%] translate-y-[-50%] w-48 shadow-black/30 whitespace-normal">Actions can only be taken by the campaign manager</div></div></div>
                 </div>
                 <section className="mb-10"><div className="flex items-center gap-2 mb-4 font-bold text-rose-600"><Lock size={18} /> Booked</div><div className="border-t border-slate-200">{data?.booked ? <DetailRow rowData={data.booked} /> : <p className="py-8 text-sm text-slate-400 italic">No confirmed booking.</p>}</div></section>
-                <section className="mb-10"><div className="flex items-center justify-between mb-4"><div className="flex items-center gap-2 font-bold text-amber-700"><Clock size={18} /> IO in progress ({data?.ios?.length || 0})</div>{data?.ios?.length > 2 && <button onClick={() => setIsIosExpanded(!isIosExpanded)} className="text-xs font-bold text-[#0071CE] flex items-center gap-1">{isIosExpanded ? 'View less' : 'View all'} {isIosExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>}</div><div className="border-t border-slate-200">{(isIosExpanded ? data?.ios : data?.ios?.slice(0, 2))?.map((io, i) => <DetailRow key={i} rowData={io} />)}</div></section>
-                <section className="mb-10"><div className="flex items-center justify-between mb-4"><div className="flex items-center gap-2 font-bold text-green-700"><Zap size={18} className="fill-green-700/20" /> Interest ({data?.interests?.length || 0})</div>{data?.interests?.length > 2 && <button onClick={() => setIsInterestsExpanded(!isInterestsExpanded)} className="text-xs font-bold text-[#0071CE] flex items-center gap-1">{isInterestsExpanded ? 'View less' : 'View all'} {isInterestsExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>}</div><div className="border-t border-slate-200">{(isInterestsExpanded ? data?.interests : data?.interests?.slice(0, 2))?.map((o, i) => <DetailRow key={i} rowData={o} />)}</div></section>
+                <section className="mb-10"><div className="flex items-center justify-between mb-4"><div className="flex items-center gap-2 font-bold text-amber-700"><Clock size={18} /> IO in progress ({data?.ios?.length || 0})</div>{data?.ios?.length > 2 && <button onClick={() => setIsIosExpanded(!isIosExpanded)} className="text-xs font-bold text-[#0053E2] flex items-center gap-1">{isIosExpanded ? 'View less' : 'View all'} {isIosExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>}</div><div className="border-t border-slate-200">{(isIosExpanded ? data?.ios : data?.ios?.slice(0, 2))?.map((io, i) => <DetailRow key={i} rowData={io} />)}</div></section>
+                <section className="mb-10"><div className="flex items-center justify-between mb-4"><div className="flex items-center gap-2 font-bold text-green-700"><Zap size={18} className="fill-green-700/20" /> Interest ({data?.interests?.length || 0})</div>{data?.interests?.length > 2 && <button onClick={() => setIsInterestsExpanded(!isInterestsExpanded)} className="text-xs font-bold text-[#0053E2] flex items-center gap-1">{isInterestsExpanded ? 'View less' : 'View all'} {isInterestsExpanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}</button>}</div><div className="border-t border-slate-200">{(isInterestsExpanded ? data?.interests : data?.interests?.slice(0, 2))?.map((o, i) => <DetailRow key={i} rowData={o} />)}</div></section>
               </div>
-              <footer className="p-8 border-t border-slate-200 flex justify-end gap-6 bg-slate-50 bg-opacity-30"><button onClick={() => setViewDetailSlot(null)} className="text-sm font-bold text-slate-500 uppercase tracking-widest">Cancel</button><button onClick={() => setViewDetailSlot(null)} className="px-10 py-4 bg-[#0071CE] text-white font-black rounded-full shadow hover:bg-[#004F91] text-sm uppercase tracking-widest">Save changes</button></footer>
+              <footer className="p-8 border-t border-slate-200 flex justify-end gap-6 bg-slate-50 bg-opacity-30"><button onClick={() => setViewDetailSlot(null)} className="text-sm font-bold text-slate-500 uppercase tracking-widest">Cancel</button><button onClick={() => setViewDetailSlot(null)} className="px-10 py-4 bg-[#0053E2] text-white font-black rounded-full shadow hover:bg-[#114AB6] text-sm uppercase tracking-widest">Save changes</button></footer>
             </div>
           );
         })()}
@@ -853,35 +927,35 @@ export default function App() {
       {/* Reserve Drawer */}
       <div className={`fixed inset-y-0 right-0 w-[480px] bg-white shadow-2xl border-l border-slate-200 z-[2500] transition-all duration-500 transform ${isReserving ? 'translate-x-0' : 'translate-x-full'}`}>
         <div className="flex flex-col h-full relative">
-          <header className="px-8 py-6 flex items-center justify-between border-b border-slate-200 bg-white">
-            <div><h2 className="text-[22px] font-black text-slate-900 leading-tight">Reserve SCO Ads</h2><p className="text-[13px] text-slate-500 mt-1 font-medium">{selectedStores.size.toLocaleString()} stores • Weeks {activeRange ? activeRange.min : ''} {activeRange && activeRange.max > activeRange.min ? `- ${activeRange.max}` : ''}</p></div>
+          <header className="px-8 py-6 flex items-center justify-between border-b border-[#E3E4E5] bg-white">
+            <div><h2 className="text-[20px] font-bold text-[#2E2F32] leading-tight">Reserve SCO Ads</h2><p className="text-[14px] text-[#74767C] mt-1">{selectedStores.size.toLocaleString()} stores • Weeks {activeRange ? activeRange.min : ''} {activeRange && activeRange.max > activeRange.min ? `- ${activeRange.max}` : ''}</p></div>
             <button onClick={() => setIsReserving(false)} className="p-2 text-slate-400 hover:text-slate-900"><X size={24} /></button>
           </header>
           <div className="flex-1 overflow-y-auto px-8 py-6 space-y-6">
-            <div className="space-y-1.5"><label className="text-[14px] font-bold text-slate-700">Advertiser</label><AdvertiserTypeahead value={advertiser} onChange={setAdvertiser} /></div>
-            <div className="space-y-4 pt-2"><label className="text-[14px] font-bold text-slate-700">Status</label>
+            <div className="space-y-1.5"><label className="text-[14px] font-bold text-[#2E2F32]">Advertiser</label><AdvertiserTypeahead value={advertiser} onChange={setAdvertiser} /></div>
+            <div className="space-y-4 pt-2"><label className="text-[14px] font-bold text-[#2E2F32]">Status</label>
               <div className="flex flex-row items-center gap-12">
-                <label className="flex items-center gap-3 cursor-pointer group"><div className="relative flex items-center justify-center w-5 h-5 rounded-full border-2 border-slate-400 group-hover:border-[#0071CE]">{reserveStatus === 'interest' && <div className="w-2.5 h-2.5 bg-[#0071CE] rounded-full" />}<input type="radio" className="sr-only" checked={reserveStatus === 'interest'} onChange={() => setReserveStatus('interest')} /></div><div className="text-[14px] font-black text-slate-900">Interest</div></label>
-                <label className="flex items-center gap-3 cursor-pointer group"><div className="relative flex items-center justify-center w-5 h-5 rounded-full border-2 border-slate-400 group-hover:border-[#0071CE]">{reserveStatus === 'book' && <div className="w-2.5 h-2.5 bg-[#0071CE] rounded-full" />}<input type="radio" className="sr-only" checked={reserveStatus === 'book'} onChange={() => setReserveStatus('book')} /></div><div className="text-[14px] font-black text-slate-900">IO in progress</div></label>
+                <label className="flex items-center gap-3 cursor-pointer group"><div className="relative flex items-center justify-center w-5 h-5 rounded-full border-2 border-slate-400 group-hover:border-[#0053E2]">{reserveStatus === 'interest' && <div className="w-2.5 h-2.5 bg-[#0053E2] rounded-full" />}<input type="radio" className="sr-only" checked={reserveStatus === 'interest'} onChange={() => setReserveStatus('interest')} /></div><div className="text-[14px] font-black text-slate-900">Interest</div></label>
+                <label className="flex items-center gap-3 cursor-pointer group"><div className="relative flex items-center justify-center w-5 h-5 rounded-full border-2 border-slate-400 group-hover:border-[#0053E2]">{reserveStatus === 'book' && <div className="w-2.5 h-2.5 bg-[#0053E2] rounded-full" />}<input type="radio" className="sr-only" checked={reserveStatus === 'book'} onChange={() => setReserveStatus('book')} /></div><div className="text-[14px] font-black text-slate-900">IO in progress</div></label>
               </div>
             </div>
             {reserveStatus === 'book' && (
-              <div className="p-5 bg-slate-50 rounded-xl border border-slate-200 space-y-5">
-                <div className="space-y-1.5"><label className="text-[13px] font-black text-slate-500 uppercase tracking-tight">IO status</label><div className="relative"><select value={ioStatus} onChange={e => setIoStatus(e.target.value)} className="w-full h-[46px] px-4 bg-white border border-slate-300 rounded-md font-bold text-slate-800 outline-none focus:border-[#0071CE] appearance-none shadow-sm text-sm"><option value="Draft">Draft</option><option value="Finalized">Finalized</option></select><ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} /></div></div>
-                <div className="space-y-1.5"><label className="text-[13px] font-black text-slate-500 uppercase tracking-tight">IO Name (optional)</label><input type="text" value={ioName} onChange={(e) => setIoName(e.target.value)} placeholder="e.g. Back to School 2026" className="w-full h-[46px] px-4 border border-slate-300 rounded-md font-medium text-slate-800 outline-none focus:border-[#0071CE] text-sm bg-white placeholder-slate-400" /></div>
-                <div className="space-y-1.5"><label className="text-[13px] font-black text-slate-500 uppercase tracking-tight">IO Number (optional)</label><input type="text" value={ioNumber} onChange={(e) => setIoNumber(e.target.value)} placeholder="e.g. IO-882103" className="w-full h-[46px] px-4 border border-slate-300 rounded-md font-medium text-slate-800 outline-none focus:border-[#0071CE] text-sm bg-white placeholder-slate-400" /></div>
+              <div className="p-5 bg-[#F8F8F8] rounded-lg border border-[#E3E4E5] space-y-5">
+                <div className="space-y-1.5"><label className="text-[12px] font-bold text-[#74767C] uppercase tracking-tight">IO status</label><div className="relative"><select value={ioStatus} onChange={e => setIoStatus(e.target.value)} className="w-full h-10 px-4 bg-white border border-[#BABBBE] rounded font-bold text-[#2E2F32] outline-none focus:border-[#0053E2] appearance-none text-sm"><option value="Draft">Draft</option><option value="Finalized">Finalized</option></select><ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} /></div></div>
+                <div className="space-y-1.5"><label className="text-[12px] font-bold text-[#74767C] uppercase tracking-tight">IO Name (optional)</label><input type="text" value={ioName} onChange={(e) => setIoName(e.target.value)} placeholder="e.g. Back to School 2026" className="w-full h-10 px-4 border border-[#BABBBE] rounded font-medium text-[#2E2F32] outline-none focus:border-[#0053E2] text-sm bg-white placeholder-[#74767C]" /></div>
+                <div className="space-y-1.5"><label className="text-[12px] font-bold text-[#74767C] uppercase tracking-tight">IO Number (optional)</label><input type="text" value={ioNumber} onChange={(e) => setIoNumber(e.target.value)} placeholder="e.g. IO-882103" className="w-full h-10 px-4 border border-[#BABBBE] rounded font-medium text-[#2E2F32] outline-none focus:border-[#0053E2] text-sm bg-white placeholder-[#74767C]" /></div>
               </div>
             )}
-            <div className="space-y-1.5"><label className="text-[14px] font-bold text-slate-700">Campaign name (optional)</label><input type="text" value={campaignName} onChange={(e) => setCampaignName(e.target.value)} placeholder="Enter campaign name" className="w-full h-[46px] px-4 border border-slate-300 rounded-md font-medium text-slate-800 outline-none focus:border-[#0071CE] text-sm placeholder-slate-400" /></div>
-            <div className="space-y-1.5"><label className="text-[14px] font-bold text-slate-700">Brand/product (optional)</label><input type="text" value={brandProduct} onChange={(e) => setBrandProduct(e.target.value)} placeholder="Enter brand or product" className="w-full h-[46px] px-4 border border-slate-300 rounded-md font-medium text-slate-800 outline-none focus:border-[#0071CE] text-sm placeholder-slate-400" /></div>
-            <div className="space-y-1.5"><label className="text-[14px] font-bold text-slate-700">Ad group name (optional)</label><input type="text" value={adGroupName} onChange={(e) => setAdGroupName(e.target.value)} placeholder="Enter ad group name" className="w-full h-[46px] px-4 border border-slate-300 rounded-md font-medium text-slate-800 outline-none focus:border-[#0071CE] text-sm placeholder-slate-400" /></div>
-            <div className="space-y-1.5"><label className="text-[14px] font-bold text-slate-700">Category</label><div className="relative"><select value={category} onChange={e => setCategory(e.target.value)} className="w-full h-[46px] px-4 bg-white border border-slate-300 rounded-md font-bold text-slate-800 outline-none focus:border-[#0071CE] appearance-none shadow-sm text-sm"><option value="">Select category</option>{CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}</select><ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} /></div></div>
-            <div className="space-y-1.5"><label className="text-[14px] font-bold text-slate-700">Campaign Manager</label><div className="relative"><select value={campaignManager} onChange={e => setCampaignManager(e.target.value)} className="w-full h-[46px] px-4 bg-white border border-slate-300 rounded-md font-bold text-slate-800 outline-none focus:border-[#0071CE] appearance-none shadow-sm text-sm"><option value="">Assign manager</option>{MANAGERS.map(m => <option key={m} value={m}>{m}</option>)}</select><ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} /></div></div>
-            <div className="space-y-1.5 pt-2"><label className="text-[14px] font-bold text-slate-700">Notes (optional)</label><textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Add campaign notes..." className="w-full px-4 py-3 border border-slate-300 rounded-md font-medium outline-none focus:border-[#0071CE] resize-none shadow-sm text-sm placeholder-slate-400" /></div>
+            <div className="space-y-1.5"><label className="text-[14px] font-bold text-[#2E2F32]">Campaign name (optional)</label><input type="text" value={campaignName} onChange={(e) => setCampaignName(e.target.value)} placeholder="Enter campaign name" className="w-full h-10 px-4 border border-[#BABBBE] rounded font-medium text-[#2E2F32] outline-none focus:border-[#0053E2] text-sm placeholder-[#74767C]" /></div>
+            <div className="space-y-1.5"><label className="text-[14px] font-bold text-[#2E2F32]">Brand/product (optional)</label><input type="text" value={brandProduct} onChange={(e) => setBrandProduct(e.target.value)} placeholder="Enter brand or product" className="w-full h-10 px-4 border border-[#BABBBE] rounded font-medium text-[#2E2F32] outline-none focus:border-[#0053E2] text-sm placeholder-[#74767C]" /></div>
+            <div className="space-y-1.5"><label className="text-[14px] font-bold text-[#2E2F32]">Ad group name (optional)</label><input type="text" value={adGroupName} onChange={(e) => setAdGroupName(e.target.value)} placeholder="Enter ad group name" className="w-full h-10 px-4 border border-[#BABBBE] rounded font-medium text-[#2E2F32] outline-none focus:border-[#0053E2] text-sm placeholder-[#74767C]" /></div>
+            <div className="space-y-1.5"><label className="text-[14px] font-bold text-[#2E2F32]">Category</label><div className="relative"><select value={category} onChange={e => setCategory(e.target.value)} className="w-full h-10 px-4 bg-white border border-[#BABBBE] rounded font-bold text-[#2E2F32] outline-none focus:border-[#0053E2] appearance-none text-sm"><option value="">Select category</option>{CATEGORIES.map(c => <option key={c} value={c}>{c}</option>)}</select><ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} /></div></div>
+            <div className="space-y-1.5"><label className="text-[14px] font-bold text-[#2E2F32]">Campaign Manager</label><div className="relative"><select value={campaignManager} onChange={e => setCampaignManager(e.target.value)} className="w-full h-10 px-4 bg-white border border-[#BABBBE] rounded font-bold text-[#2E2F32] outline-none focus:border-[#0053E2] appearance-none text-sm"><option value="">Assign manager</option>{MANAGERS.map(m => <option key={m} value={m}>{m}</option>)}</select><ChevronDown className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} /></div></div>
+            <div className="space-y-1.5 pt-2"><label className="text-[14px] font-bold text-[#2E2F32]">Notes (optional)</label><textarea value={notes} onChange={(e) => setNotes(e.target.value)} rows={3} placeholder="Add campaign notes..." className="w-full px-4 py-3 border border-[#BABBBE] rounded font-medium outline-none focus:border-[#0053E2] resize-none text-sm placeholder-[#74767C]" /></div>
           </div>
-          <footer className="px-8 py-6 border-t border-slate-200 flex justify-end gap-6 bg-white shrink-0">
-            <button onClick={() => setIsReserving(false)} className="text-[14px] font-bold text-slate-500 underline hover:text-slate-800">Cancel</button>
-            <button className="px-10 py-3 bg-[#0071CE] text-white font-black rounded-full shadow hover:bg-[#004F91] text-[14px]">Reserve</button>
+          <footer className="px-8 py-5 border-t border-[#E3E4E5] flex justify-end gap-4 bg-white shrink-0">
+            <button onClick={() => setIsReserving(false)} className="text-[14px] font-bold text-[#74767C] hover:text-[#2E2F32]">Cancel</button>
+            <button className="px-6 h-10 bg-[#0053E2] text-white font-bold rounded-full hover:bg-[#114AB6] text-[16px] transition-colors">Reserve</button>
           </footer>
         </div>
       </div>
