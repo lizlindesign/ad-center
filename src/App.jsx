@@ -715,7 +715,11 @@ export default function App() {
           </div>
           <div className="flex items-center gap-2 flex-wrap">
             {selectedStores.size > 0 && <div className="flex items-center bg-[#E5F1FF] text-[#0053E2] px-3 py-1.5 rounded-full text-xs font-black border border-blue-100 shadow-sm"><Store size={14} className="mr-1.5" />{selectedStores.size.toLocaleString()} stores<button onClick={() => setSelectedStores(new Set())} className="ml-2 hover:text-[#114AB6]"><X size={14} strokeWidth={4} /></button></div>}
-            {weekRange.start && <div className="flex items-center bg-[#E5F1FF] text-[#0053E2] px-3 py-1.5 rounded-full text-xs font-black border border-blue-100 shadow-sm">WM Week {activeRange?.min}{activeRange && activeRange.max > activeRange.min ? ` - ${activeRange.max}` : ''}<button onClick={() => setWeekRange({ start: null, end: null })} className="ml-2 hover:text-[#114AB6]"><X size={14} strokeWidth={4} /></button></div>}
+            {weekRange.start && (() => {
+              const minWeek = displayWeeks.find(w => w.id === activeRange?.min);
+              const maxWeek = displayWeeks.find(w => w.id === activeRange?.max);
+              return <div className="flex items-center bg-[#E5F1FF] text-[#0053E2] px-3 py-1.5 rounded-full text-xs font-black border border-blue-100 shadow-sm">WM Week {minWeek?.weekNumber}{maxWeek && maxWeek.weekNumber > minWeek?.weekNumber ? ` - ${maxWeek.weekNumber}` : ''}<button onClick={() => setWeekRange({ start: null, end: null })} className="ml-2 hover:text-[#114AB6]"><X size={14} strokeWidth={4} /></button></div>;
+            })()}
             {(selectedStores.size > 0 || weekRange.start || viewFilter !== 'all') && <button onClick={() => { setSelectedStores(new Set()); setWeekRange({ start: null, end: null }); setViewFilter('all'); setAvailableSubs(new Set()); }} className="text-[11px] font-black uppercase text-rose-600 hover:text-rose-800 underline ml-2">Clear all</button>}
           </div>
         </div>
