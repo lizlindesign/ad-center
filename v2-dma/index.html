@@ -9,6 +9,17 @@
     <link rel="stylesheet" crossorigin href="/pages/q0l048f/walmart-ad-center/v2-dma/assets/index-Bn18WJZ0.css">
   </head>
   <body>
+    <script>
+      (function() {
+        var redirect = sessionStorage.getItem('spa-redirect');
+        if (redirect) {
+          sessionStorage.removeItem('spa-redirect');
+          var base = '/pages/q0l048f/walmart-ad-center/v2-dma';
+          var path = redirect.replace(base, '') || '/';
+          if (path !== location.pathname) history.replaceState(null, '', base + path);
+        }
+      })();
+    </script>
     <div id="root"></div>
   </body>
 </html>
