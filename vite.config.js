@@ -3,7 +3,8 @@ import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
 // https://vite.dev/config/
-export default defineConfig({
+export default defineConfig(({ command }) => ({
   plugins: [react(), tailwindcss()],
-  base: '/pages/q0l048f/walmart-ad-center/',
-})
+  // Use '/' for local dev, configured base for production builds
+  base: '/',
+}))

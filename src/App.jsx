@@ -13,7 +13,8 @@ import StubPage from './pages/StubPage';
 import {
   Search, Download, Upload, Lock, Clock, User, X, Calendar, ChevronDown, Plus,
   HelpCircle, Bell, Check, CheckSquare, Square, Zap, Info, MinusSquare, Trash2,
-  Eye, ChevronUp, Pencil, ChevronRight, Store, MapPin, Filter as FilterIcon
+  Eye, ChevronUp, Pencil, ChevronRight, Store, MapPin, Filter as FilterIcon,
+  ChevronLeft
 } from 'lucide-react';
 
 // --- Constants ---
@@ -322,6 +323,8 @@ export default function App() {
   const [actionTooltip, setActionTooltip] = useState(null);
   const [weekFilterMode, setWeekFilterMode] = useState('52running');
   const [customDates, setCustomDates] = useState({ start: MOCK_TODAY.toISOString().split('T')[0], end: new Date(MOCK_TODAY.getTime() + 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0] });
+  const [weekPageStart, setWeekPageStart] = useState(0);
+  const WEEKS_PER_PAGE = 8;
   const [expandedStates, setExpandedStates] = useState(new Set());
   const [activeCursor, setActiveCursor] = useState({ storeId: null, weekId: null });
   const [isScrolled, setIsScrolled] = useState(false);
@@ -500,12 +503,19 @@ export default function App() {
     return translatedWeeksRange.label;
   }, [weekFilterMode, translatedWeeksRange]);
 
-  const displayWeeks = useMemo(() => {
+  const allDisplayWeeks = useMemo(() => {
     if (weekFilterMode === 'fy2026') return WEEKS_FY2026;
     if (weekFilterMode === 'fy2027') return WEEKS_FY2027;
     if (weekFilterMode === '52running') return RUNNING_WEEKS;
     return WEEKS_FY2027.filter(w => w.id >= translatedWeeksRange.start && w.id <= translatedWeeksRange.end);
   }, [weekFilterMode, translatedWeeksRange]);
+
+  const displayWeeks = useMemo(() => {
+    return allDisplayWeeks.slice(weekPageStart, weekPageStart + WEEKS_PER_PAGE);
+  }, [allDisplayWeeks, weekPageStart]);
+
+  const canGoBackWeek = weekPageStart > 0;
+  const canGoForwardWeek = weekPageStart + WEEKS_PER_PAGE < allDisplayWeeks.length;
 
   // --- Handlers ---
   const handleWeekHeaderClick = (weekId) => {
@@ -689,7 +699,7 @@ export default function App() {
               <div className="absolute top-full right-0 mt-2 w-[480px] bg-white border border-[#E3E4E5] rounded-lg shadow-[0px_4px_16px_rgba(0,0,0,0.12)] z-[600] p-6">
                 <div className="space-y-5">
                   {[{ id: '52running', label: '52 running weeks' },{ id: 'fy2026', label: 'FY 2026' },{ id: 'fy2027', label: 'FY 2027' },{ id: 'custom', label: 'Custom week range' }].map(opt => (
-                    <label key={opt.id} className="flex items-center gap-4 cursor-pointer"><div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${weekFilterMode === opt.id ? 'border-[#0053E2]' : 'border-slate-300'}`}>{weekFilterMode === opt.id && <div className="w-2.5 h-2.5 rounded-full bg-[#0053E2]" />}</div><input type="radio" className="sr-only" checked={weekFilterMode === opt.id} onChange={() => setWeekFilterMode(opt.id)} /><span className="text-sm font-black text-slate-800">{opt.label}</span></label>
+                    <label key={opt.id} className="flex items-center gap-4 cursor-pointer"><div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center ${weekFilterMode === opt.id ? 'border-[#0053E2]' : 'border-slate-300'}`}>{weekFilterMode === opt.id && <div className="w-2.5 h-2.5 rounded-full bg-[#0053E2]" />}</div><input type="radio" className="sr-only" checked={weekFilterMode === opt.id} onChange={() => { setWeekFilterMode(opt.id); setWeekPageStart(0); }} /><span className="text-sm font-black text-slate-800">{opt.label}</span></label>
                   ))}
                   <div className={`grid grid-cols-2 gap-6 pt-2 transition-opacity ${weekFilterMode === 'custom' ? 'opacity-100' : 'opacity-30 pointer-events-none'}`}>
                     <div className="space-y-1.5"><label className="text-[10px] font-black text-slate-400 uppercase">Start week</label><input type="date" value={customDates.start} onChange={(e) => setCustomDates({ ...customDates, start: e.target.value })} className="w-full h-11 px-3 border border-slate-300 rounded-lg text-sm font-bold outline-none focus:border-[#0053E2]" /></div>
@@ -700,6 +710,27 @@ export default function App() {
                 </div>
               </div>
             )}
+          </div>
+
+          {/* Week Pagination */}
+          <div className="flex items-center h-8 border border-[#2e2f32] rounded-full overflow-hidden shrink-0">
+            <button 
+              onClick={() => setWeekPageStart(Math.max(0, weekPageStart - 1))} 
+              disabled={!canGoBackWeek}
+              className={`w-8 h-full flex items-center justify-center border-r border-[#2e2f32] transition-colors ${canGoBackWeek ? 'text-[#2E2F32] hover:bg-[#f1f1f2]' : 'text-slate-300 cursor-not-allowed'}`}
+            >
+              <ChevronLeft size={16} />
+            </button>
+            <span className="px-3 text-[14px] font-normal text-[#2E2F32] whitespace-nowrap">
+              WM weeks {displayWeeks[0]?.weekNumber}-{displayWeeks[displayWeeks.length - 1]?.weekNumber} of {allDisplayWeeks.length}
+            </span>
+            <button 
+              onClick={() => setWeekPageStart(Math.min(allDisplayWeeks.length - WEEKS_PER_PAGE, weekPageStart + 1))} 
+              disabled={!canGoForwardWeek}
+              className={`w-8 h-full flex items-center justify-center border-l border-[#2e2f32] transition-colors ${canGoForwardWeek ? 'text-[#2E2F32] hover:bg-[#f1f1f2]' : 'text-slate-300 cursor-not-allowed'}`}
+            >
+              <ChevronRight size={16} />
+            </button>
           </div>
 
           <div className="flex items-center gap-1.5 shrink-0">
@@ -721,8 +752,8 @@ export default function App() {
           <div className="flex items-center gap-2 flex-wrap">
             {selectedStores.size > 0 && <div className="flex items-center bg-[#E5F1FF] text-[#0053E2] px-3 py-1.5 rounded-full text-xs font-black border border-blue-100 shadow-sm"><Store size={14} className="mr-1.5" />{selectedStores.size.toLocaleString()} stores<button onClick={() => setSelectedStores(new Set())} className="ml-2 hover:text-[#114AB6]"><X size={14} strokeWidth={4} /></button></div>}
             {weekRange.start && (() => {
-              const minWeek = displayWeeks.find(w => w.id === activeRange?.min);
-              const maxWeek = displayWeeks.find(w => w.id === activeRange?.max);
+              const minWeek = allDisplayWeeks.find(w => w.id === activeRange?.min);
+              const maxWeek = allDisplayWeeks.find(w => w.id === activeRange?.max);
               return <div className="flex items-center bg-[#E5F1FF] text-[#0053E2] px-3 py-1.5 rounded-full text-xs font-black border border-blue-100 shadow-sm">WM Week {minWeek?.weekNumber}{maxWeek && maxWeek.weekNumber > minWeek?.weekNumber ? ` - ${maxWeek.weekNumber}` : ''}<button onClick={() => setWeekRange({ start: null, end: null })} className="ml-2 hover:text-[#114AB6]"><X size={14} strokeWidth={4} /></button></div>;
             })()}
             {(selectedStores.size > 0 || weekRange.start || viewFilter !== 'all') && <button onClick={() => { setSelectedStores(new Set()); setWeekRange({ start: null, end: null }); setViewFilter('all'); setAvailableSubs(new Set()); }} className="text-[11px] font-black uppercase text-rose-600 hover:text-rose-800 underline ml-2">Clear all</button>}
