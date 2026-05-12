@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Search, ChevronDown, ArrowUp, RefreshCw, Zap, ImageIcon,
   Download, CheckCircle, Circle, Store, BarChart2, Pin, X, ChevronsUpDown,
+  Monitor, Calendar, Clock, ChevronLeft, Check,
+  ShoppingCart, Gamepad2, Home as HomeIcon, Baby, Heart, Pill, PawPrint,
 } from 'lucide-react';
 
 // ─── Design tokens ──────────────────────────────────────────────────────────
@@ -88,8 +90,205 @@ const PRIORITY_TAG_COLOR = {
   'secondary-comp':'teal',
 };
 
+// ─── Kangaroo In-Aisle Screens Data ───────────────────────────────────────────
+// Using Walmart fiscal weeks (consistent with Inventory Calendar)
+const FY2027_START = new Date('2026-02-01');
+
+const generateKangarooFlights = () => {
+  const flights = [];
+  const fmt = (d) => d.toLocaleDateString('en-US', { month: 'short', day: '2-digit' });
+  
+  // Generate 2-week flight windows starting from WM Week 10
+  for (let i = 0; i < 12; i++) {
+    const startWeek = 10 + (i * 2);
+    const endWeek = startWeek + 1;
+    
+    // Calculate actual dates based on fiscal year start
+    const startDate = new Date(FY2027_START);
+    startDate.setDate(startDate.getDate() + ((startWeek - 1) * 7));
+    const endDate = new Date(startDate);
+    endDate.setDate(endDate.getDate() + 13); // 2 weeks - 1 day
+    
+    flights.push({
+      id: i + 1,
+      startWeek,
+      endWeek,
+      label: `WM Week ${startWeek} - ${endWeek}`,
+      dates: `${fmt(startDate)} - ${fmt(endDate)}`,
+      startDate,
+      endDate,
+    });
+  }
+  return flights;
+};
+
+const FLIGHT_WINDOWS = generateKangarooFlights();
+
+const KANGAROO_DEPARTMENTS = [
+  { id: 'grocery', name: 'Grocery', totalScreens: 12, icon: 'grocery', categories: [
+    { id: 'soda-drinks', name: 'Soda/Drinks Aisle' },
+    { id: 'seasoning', name: 'Seasoning' },
+    { id: 'chips-snacks', name: 'Chips/Snacks' },
+  ]},
+  { id: 'toys', name: 'Toys', totalScreens: 6, icon: 'toys', categories: [
+    { id: 'action-figures', name: 'Action Figures' },
+    { id: 'games-puzzles', name: 'Games & Puzzles' },
+  ]},
+  { id: 'home', name: 'Home', totalScreens: 4, icon: 'home', categories: [
+    { id: 'furniture', name: 'Furniture' },
+    { id: 'furnishings', name: 'Furnishings' },
+  ]},
+  { id: 'baby', name: 'Baby', totalScreens: 3, icon: 'baby', categories: [
+    { id: 'diapers', name: 'Diapers & Wipes' },
+    { id: 'baby-food', name: 'Baby Food' },
+  ]},
+  { id: 'hhe', name: 'Household Essentials (HHE)', totalScreens: 5, icon: 'hhe', categories: [
+    { id: 'cleaning', name: 'Cleaning Supplies' },
+    { id: 'paper-goods', name: 'Paper Goods' },
+  ]},
+  { id: 'health-beauty', name: 'Health & Beauty', totalScreens: 2, icon: 'beauty', categories: [
+    { id: 'skincare', name: 'Skincare' },
+    { id: 'haircare', name: 'Haircare' },
+  ]},
+  { id: 'otc-pharmacy', name: 'OTC/Pharmacy', totalScreens: 2, icon: 'pharmacy', categories: [
+    { id: 'pain-relief', name: 'Pain Relief' },
+    { id: 'vitamins', name: 'Vitamins & Supplements' },
+  ]},
+  { id: 'pets', name: 'Pets', totalScreens: 2, icon: 'pets', categories: [
+    { id: 'dog-food', name: 'Dog Food' },
+    { id: 'cat-food', name: 'Cat Food' },
+  ]},
+];
+
+const DEPT_ICONS = {
+  grocery: ShoppingCart,
+  toys: Gamepad2,
+  home: HomeIcon,
+  baby: Baby,
+  hhe: Monitor,
+  beauty: Heart,
+  pharmacy: Pill,
+  pets: PawPrint,
+};
+
+const KANGAROO_ADVERTISERS = [
+  'Pepsi', 'Coca Cola', 'Monster Energy', 'Celsius', 'Frito Lay', 'Pringles',
+  'Cheeze It', 'Doritos', 'McCormick', 'Old Spice', 'Pampers', 'Huggies',
+  'Tide', 'Bounty', 'Charmin', 'L\'Oreal', 'Neutrogena', 'Tylenol', 'Advil',
+  'Purina', 'Blue Buffalo', 'LEGO', 'Hasbro', 'Mattel', 'IKEA', 'Ashley',
+];
+
+const generateKangarooBookings = () => {
+  const bookings = {};
+  KANGAROO_DEPARTMENTS.forEach((dept) => {
+    const screensPerCat = Math.ceil(dept.totalScreens / dept.categories.length);
+    dept.categories.forEach((cat) => {
+      FLIGHT_WINDOWS.forEach((flight) => {
+        const key = `${cat.id}-${flight.id}`;
+        // Booking probability varies by flight timing:
+        // Earlier flights (1-4): more bookings, higher chance of sold out
+        // Middle flights (5-8): moderate bookings
+        // Later flights (9-12): fewer bookings, mostly available
+        const roll = Math.random();
+        let numBookings;
+
+        if (flight.id <= 4) {
+          // Past/recent weeks - higher booking rate, more sold out
+          if (roll < 0.15) {
+            numBookings = 0;
+          } else if (roll < 0.30) {
+            numBookings = 1;
+          } else if (roll < 0.50) {
+            numBookings = 2;
+          } else if (roll < 0.70) {
+            numBookings = 3;
+          } else {
+            numBookings = screensPerCat; // Sold out
+          }
+        } else if (flight.id <= 8) {
+          // Middle weeks - moderate bookings
+          if (roll < 0.30) {
+            numBookings = 0;
+          } else if (roll < 0.55) {
+            numBookings = 1;
+          } else if (roll < 0.80) {
+            numBookings = 2;
+          } else {
+            numBookings = Math.min(screensPerCat, 3);
+          }
+        } else {
+          // Far future - mostly available
+          if (roll < 0.50) {
+            numBookings = 0;
+          } else if (roll < 0.75) {
+            numBookings = 1;
+          } else if (roll < 0.90) {
+            numBookings = 2;
+          } else {
+            numBookings = Math.min(screensPerCat, 2);
+          }
+        }
+
+        numBookings = Math.min(numBookings, screensPerCat);
+        const campaigns = [];
+        for (let i = 0; i < numBookings; i++) {
+          // Generate multi-week booking spans that include the current flight
+          // Randomly extend before and/or after the current flight (1-3 extra flights each direction)
+          const extendBefore = Math.floor(Math.random() * 3); // 0-2 flights before
+          const extendAfter = Math.floor(Math.random() * 3);  // 0-2 flights after
+          
+          const startFlightIdx = Math.max(0, flight.id - 1 - extendBefore);
+          const endFlightIdx = Math.min(FLIGHT_WINDOWS.length - 1, flight.id - 1 + extendAfter);
+          
+          const startFlight = FLIGHT_WINDOWS[startFlightIdx];
+          const endFlight = FLIGHT_WINDOWS[endFlightIdx];
+          
+          // Build week label spanning multiple flights
+          const weekLabel = startFlightIdx === endFlightIdx
+            ? startFlight.label
+            : `WM Week ${startFlight.startWeek} - ${endFlight.endWeek}`;
+          
+          campaigns.push({
+            id: `${key}-${i}`,
+            advertiser: KANGAROO_ADVERTISERS[Math.floor(Math.random() * KANGAROO_ADVERTISERS.length)],
+            dateRange: flight.dates,
+            weekLabel,
+            status: 'RUNNING',
+          });
+        }
+        bookings[key] = campaigns;
+      });
+    });
+  });
+  return bookings;
+};
+
+const KANGAROO_BOOKINGS = generateKangarooBookings();
+
+// Random total percentage between 20-78% for the prototype
+const KANGAROO_RANDOM_PCT = Math.floor(Math.random() * 59) + 20; // 20-78
+
+const getKangarooDeptStatus = (dept, flightId) => {
+  let totalBooked = 0;
+  dept.categories.forEach((cat) => {
+    const key = `${cat.id}-${flightId}`;
+    totalBooked += (KANGAROO_BOOKINGS[key] || []).length;
+  });
+  const pct = (totalBooked / dept.totalScreens) * 100;
+  // Adjusted thresholds - Kangaroo just started, so more Available statuses
+  if (pct >= 100) return { label: 'SOLD OUT', color: 'error' };
+  if (pct >= 90) return { label: 'NEAR CAPACITY', color: 'warning' };
+  if (pct >= 70) return { label: 'HIGH DEMAND', color: 'info' };
+  return { label: 'AVAILABLE', color: 'positive' };
+};
+
+const getKangarooCategoryBooked = (catId, flightId) => {
+  const key = `${catId}-${flightId}`;
+  return (KANGAROO_BOOKINGS[key] || []).length;
+};
+
 // ─── Main page ───────────────────────────────────────────────────────────────
-export default function AdInventory({ onNavigate }) {
+export default function AdInventory2({ onNavigate, onNavigateToCalendar }) {
   const [activeTab,            setActiveTab]            = useState('in-aisle');
   const [adFormat,             setAdFormat]             = useState('dynamic');
   const [timeRange,            setTimeRange]            = useState('1M');
@@ -101,12 +300,23 @@ export default function AdInventory({ onNavigate }) {
   const [isSearchDropdownOpen, setIsSearchDropdownOpen] = useState(false);
   const [isSyncing,            setIsSyncing]            = useState(false);
 
+  // Kangaroo section state
+  const [kangarooSearch, setKangarooSearch] = useState('');
+  const [selectedFlight, setSelectedFlight] = useState(FLIGHT_WINDOWS[0]);
+  const [flightDropdownOpen, setFlightDropdownOpen] = useState(false);
+  const [selectedKangarooDept, setSelectedKangarooDept] = useState(null);
+  const [reserveModal, setReserveModal] = useState(null);
+
   const searchRef = useRef(null);
+  const flightRef = useRef(null);
 
   useEffect(() => {
     const onMouseDown = (e) => {
       if (searchRef.current && !searchRef.current.contains(e.target)) {
         setIsSearchDropdownOpen(false);
+      }
+      if (flightRef.current && !flightRef.current.contains(e.target)) {
+        setFlightDropdownOpen(false);
       }
     };
     document.addEventListener('mousedown', onMouseDown);
@@ -120,6 +330,28 @@ export default function AdInventory({ onNavigate }) {
     [skuInput],
   );
 
+  // Kangaroo computed values
+  const kangarooTotalScreens = KANGAROO_DEPARTMENTS.reduce((sum, d) => sum + d.totalScreens, 0);
+  const kangarooTotalBooked = useMemo(() => {
+    let booked = 0;
+    KANGAROO_DEPARTMENTS.forEach((dept) => {
+      dept.categories.forEach((cat) => {
+        booked += getKangarooCategoryBooked(cat.id, selectedFlight.id);
+      });
+    });
+    return booked;
+  }, [selectedFlight.id]);
+  // Use random percentage (20-78%) for the global donut - refreshes show different values
+  const kangarooTotalPct = KANGAROO_RANDOM_PCT;
+
+  const filteredKangarooDepts = useMemo(() => {
+    if (!kangarooSearch.trim()) return KANGAROO_DEPARTMENTS;
+    const q = kangarooSearch.toLowerCase();
+    return KANGAROO_DEPARTMENTS.filter(
+      (d) => d.name.toLowerCase().includes(q) || d.categories.some((c) => c.name.toLowerCase().includes(q))
+    );
+  }, [kangarooSearch]);
+
   const triggerSync = () => {
     if (isSyncing) return;
     setIsSyncing(true);
@@ -130,14 +362,13 @@ export default function AdInventory({ onNavigate }) {
     <div className="flex-1 overflow-y-auto" style={{ background: '#F5F5F5' }}>
 
       {/* ── Title bar ─────────────────────────────────────────── */}
-      <div className="px-8 pt-6 pb-4 flex flex-wrap gap-4 justify-between items-center bg-white border-b border-[#E3E4E5]">
+      <div className="px-8 pt-6 pb-4 flex flex-wrap gap-4 justify-between items-center">
         <div>
           <h1 className="text-[32px] font-bold text-[#2E2F32] leading-10">Ad Inventory</h1>
           <p className="text-[16px] text-[#74767C] mt-1">Store Ads inventory availability and booking status</p>
         </div>
         <div className="flex gap-3 items-center">
-          <SharePill icon={<CheckCircle size={14} style={{ color: BLUE }} />} label="Paid ad (60%)" active />
-          <SharePill icon={<Circle size={14} style={subtle} />} label="In-house ad (40%)" />
+          <Btn variant="primary" onClick={() => onNavigateToCalendar?.(activeTab)}>Reserve inventory</Btn>
         </div>
       </div>
 
@@ -193,12 +424,13 @@ export default function AdInventory({ onNavigate }) {
         </div>
         <div className="flex gap-2 items-center">
           <Btn variant="secondary" leading={<Download size={14} />}>Download CSV</Btn>
-          <Btn variant="primary" onClick={() => onNavigate?.('inventory-calendar')}>Reserve inventory</Btn>
+          <SharePill icon={<CheckCircle size={14} style={{ color: BLUE }} />} label="Paid ad (60%)" active />
+          <SharePill icon={<Circle size={14} style={subtle} />} label="In-house ad (40%)" />
         </div>
       </div>
 
       {/* ── Section 1: All stores + Daily overview ────────────── */}
-      <div className="px-8 py-6 grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
+      <div className="px-8 py-6 grid grid-cols-1 xl:grid-cols-3 gap-6 items-stretch">
 
         {/* Left: donut + store list */}
         <div className="flex flex-col" style={surfaceCard}>
@@ -468,31 +700,108 @@ export default function AdInventory({ onNavigate }) {
         </div>
       </div>
 
-      {/* ── Section 3: Network load + Inventory fluidity ──────── */}
-      <div className="px-8 pb-10 grid grid-cols-1 xl:grid-cols-3 gap-6">
-        <div className="p-5 flex flex-col" style={surfaceCard}>
-          <div className="flex justify-between items-center">
-            <h3 className="text-sm font-bold text-[#2E2F32]">Network load</h3>
-            <span className="text-[10px] font-black uppercase tracking-[0.18em] px-2 py-0.5 rounded"
-              style={{ background: '#e3f4ea', color: '#1a8245' }}>LIVE</span>
+      {/* ── Kangaroo In-Aisle Screens Section ──────────────────── */}
+      <div className="px-8 pb-8">
+        <div style={surfaceCard}>
+          {/* Section header with filters */}
+          <div className="px-6 py-4 flex flex-wrap gap-4 items-center justify-between border-b border-[#E3E4E5]">
+            <div className="flex items-center gap-4">
+              <h2 className="text-lg font-bold text-[#2E2F32]">In Aisle Screens</h2>
+              <span className="px-2 py-1 rounded text-[10px] font-bold uppercase tracking-wide"
+                style={{ background: '#e9f1fe', color: BLUE }}>200 Stores Aggregated</span>
+            </div>
+            <div className="flex gap-3 items-center flex-wrap">
+              {/* Search */}
+              <div className="flex items-center gap-2 px-3 rounded-full text-sm"
+                style={{ height: 32, width: 160, background: '#fff', border: '1px solid #c4c5c8' }}>
+                <Search size={12} style={subtle} />
+                <input type="text" value={kangarooSearch} onChange={(e) => setKangarooSearch(e.target.value)}
+                  placeholder="Search inventory..." className="flex-1 bg-transparent outline-none text-xs" />
+              </div>
+              {/* Flight badge */}
+              <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold"
+                style={{ background: '#fff4e0', color: '#c97f00', border: '1px solid #ffd98a' }}>
+                <Clock size={10} />
+                FLIGHT: 2-WEEK INCREMENT
+              </div>
+              {/* Date picker */}
+              <div ref={flightRef} className="relative">
+                <button type="button" onClick={() => setFlightDropdownOpen(!flightDropdownOpen)}
+                  className="flex items-center gap-2 px-3 rounded-full text-xs"
+                  style={{ height: 32, background: '#fff', border: '1px solid #c4c5c8', cursor: 'pointer' }}>
+                  <Calendar size={12} style={{ color: BLUE }} />
+                  <span>{selectedFlight.label} ({selectedFlight.dates})</span>
+                  <ChevronDown size={12} />
+                </button>
+                {flightDropdownOpen && (
+                  <div className="absolute left-0 mt-1 z-30 py-1" style={{ ...surfaceCard, minWidth: 160 }}>
+                    {FLIGHT_WINDOWS.map((f) => (
+                      <button key={f.id} type="button"
+                        onClick={() => { setSelectedFlight(f); setFlightDropdownOpen(false); }}
+                        className="w-full text-left px-3 py-2 text-xs hover:bg-[#e9f1fe] flex items-center justify-between gap-2"
+                        style={{ background: f.id === selectedFlight.id ? '#e9f1fe' : 'transparent', border: 'none', cursor: 'pointer' }}>
+                        <div>
+                          <div className="font-medium">{f.label}</div>
+                          <div className="text-[10px]" style={subtle}>{f.dates}</div>
+                        </div>
+                        {f.id === selectedFlight.id && <Check size={12} style={{ color: BLUE }} />}
+                      </button>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <button type="button" className="flex items-center gap-1.5 px-3 rounded-full text-xs font-medium"
+                style={{ height: 32, background: '#fff', border: '1px solid #c4c5c8', cursor: 'pointer' }}>
+                <Download size={12} />
+                Download View
+              </button>
+              <button
+                type="button"
+                onClick={() => onNavigate?.('inventory-calendar-2')}
+                className="flex items-center gap-1.5 px-4 rounded-full text-xs font-bold text-white"
+                style={{ height: 32, background: BLUE, border: 'none', cursor: 'pointer' }}
+              >
+                <Calendar size={12} />
+                View inventory calendar
+              </button>
+            </div>
           </div>
-          <div className="flex justify-center mt-4">
-            <NetworkLoadDonut pct={45} />
-          </div>
-        </div>
-        <div className="xl:col-span-2 p-5 flex flex-col" style={surfaceCard}>
-          <div className="flex justify-between items-center">
-            <h3 className="text-sm font-bold text-[#2E2F32]">Inventory fluidity (24h)</h3>
-            <span className="flex items-center gap-2 text-xs">
-              <span className="inline-block w-3 h-0.5" style={{ background: BLUE }} />
-            </span>
-          </div>
-          <FluiditySineChart />
-          <div className="flex justify-between text-[10px] uppercase font-bold tracking-wider mt-2" style={subtle}>
-            <span>Aisle Update</span><span>High Traffic</span><span>Store Reset</span><span>Present</span>
+
+          {/* Content area */}
+          <div className="p-6">
+            {selectedKangarooDept ? (
+              <KangarooDrilldown
+                dept={selectedKangarooDept}
+                flight={selectedFlight}
+                onBack={() => setSelectedKangarooDept(null)}
+                onReserve={(cat, avail) => setReserveModal({ dept: selectedKangarooDept, cat, avail })}
+                onChangeFlight={setSelectedFlight}
+              />
+            ) : (
+              <KangarooOverview
+                departments={filteredKangarooDepts}
+                flight={selectedFlight}
+                totalPct={kangarooTotalPct}
+                totalBooked={kangarooTotalBooked}
+                totalScreens={kangarooTotalScreens}
+                onSelectDept={setSelectedKangarooDept}
+              />
+            )}
           </div>
         </div>
       </div>
+
+      {/* Reserve Modal */}
+      {reserveModal && (
+        <KangarooReserveModal
+          dept={reserveModal.dept}
+          cat={reserveModal.cat}
+          flight={selectedFlight}
+          availableSlots={reserveModal.avail}
+          onClose={() => setReserveModal(null)}
+        />
+      )}
+
     </div>
   );
 }
@@ -613,26 +922,6 @@ function DonutChart({ booked }) {
       <div className="absolute inset-6 rounded-full flex flex-col items-center justify-center" style={{ background: '#fff' }}>
         <span className="text-xl font-black text-[#2E2F32] leading-tight">{booked}%</span>
         <span className="text-[10px] font-bold uppercase tracking-wide mt-0.5" style={{ color: '#74767C' }}>Booked</span>
-      </div>
-    </div>
-  );
-}
-
-function NetworkLoadDonut({ pct }) {
-  const G = 1.5;
-  const bg = `conic-gradient(
-    white 0% ${G / 2}%,
-    ${BLUE} ${G / 2}% ${pct - G / 2}%,
-    white ${pct - G / 2}% ${pct + G / 2}%,
-    #f1f1f2 ${pct + G / 2}% ${100 - G / 2}%,
-    white ${100 - G / 2}% 100%
-  )`;
-  return (
-    <div className="relative w-32 h-32 rounded-full" role="img" aria-label={`${pct} percent booked`}
-      style={{ background: bg }}>
-      <div className="absolute inset-3 rounded-full flex flex-col items-center justify-center" style={{ background: '#fff' }}>
-        <span className="text-2xl font-black tracking-tighter text-[#2E2F32]">{pct}%</span>
-        <span className="text-[9px] uppercase font-black mt-1" style={subtle}>Booked</span>
       </div>
     </div>
   );
@@ -777,19 +1066,313 @@ function DailyOverviewChart() {
   );
 }
 
-function FluiditySineChart() {
-  const W = 1000, H = 120;
-  const points = [];
-  for (let i = 0; i <= 60; i++) {
-    const x = (i / 60) * W;
-    const y = H / 2 - Math.sin((i / 60) * Math.PI * 2) * 35;
-    points.push(`${x},${y}`);
-  }
+// ─── Kangaroo Sub-components ──────────────────────────────────────────────────
+
+function KangarooOverview({ departments, flight, totalPct, totalBooked, totalScreens, onSelectDept }) {
   return (
-    <div className="mt-4 relative h-28 w-full">
-      <svg className="w-full h-full" viewBox={`0 0 ${W} ${H}`} preserveAspectRatio="none">
-        <polyline fill="none" stroke={BLUE} strokeWidth="2.5" points={points.join(' ')} />
-      </svg>
+    <div className="flex gap-6 items-stretch">
+      {/* Left: Donut */}
+      <div className="p-5 flex flex-col items-center shrink-0" style={{ background: '#F5F5F5', borderRadius: 12, width: 220 }}>
+        <div className="text-xs font-bold text-[#2E2F32] mb-3 text-center">
+          Global Store Inventory for In Aisle Screens
+        </div>
+        <KangarooDonut pct={totalPct} />
+        <div className="mt-3 text-center">
+          <div className="text-[10px] uppercase font-bold tracking-wide" style={subtle}>Booked</div>
+          <div className="text-sm mt-1">
+            <span className="font-bold">{totalBooked}</span>
+            <span style={subtle}> / {totalScreens} screens</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Right: Department grid */}
+      <div className="flex-1 grid grid-cols-2 xl:grid-cols-4 gap-3 auto-rows-fr">
+        {departments.map((dept) => {
+          const status = getKangarooDeptStatus(dept, flight.id);
+          let booked = 0;
+          dept.categories.forEach((cat) => {
+            booked += getKangarooCategoryBooked(cat.id, flight.id);
+          });
+          return (
+            <button key={dept.id} type="button" onClick={() => onSelectDept(dept)}
+              className="p-3 flex flex-col text-left transition-all hover:shadow-md"
+              style={{ background: '#F5F5F5', borderRadius: 12, cursor: 'pointer', border: '2px solid transparent' }}
+              onMouseEnter={(e) => (e.currentTarget.style.borderColor = BLUE)}
+              onMouseLeave={(e) => (e.currentTarget.style.borderColor = 'transparent')}>
+              <div className="flex items-start justify-between gap-2">
+                {(() => {
+                  const IconComponent = DEPT_ICONS[dept.icon] || Monitor;
+                  return <IconComponent size={16} style={{ color: BLUE }} />;
+                })()}
+                <KangarooStatusBadge status={status} />
+              </div>
+              <div className="text-sm font-bold mt-2 text-[#2E2F32]">{dept.name}</div>
+              <div className="mt-auto pt-3">
+                <div className="text-xl font-black text-[#2E2F32]">
+                  {booked}<span className="text-sm font-medium" style={subtle}> / {dept.totalScreens}</span>
+                </div>
+              </div>
+            </button>
+          );
+        })}
+      </div>
     </div>
   );
 }
+
+function KangarooDrilldown({ dept, flight, onBack, onReserve, onChangeFlight }) {
+  return (
+    <div>
+      <button type="button" onClick={onBack}
+        className="flex items-center gap-1 text-xs font-medium mb-3"
+        style={{ color: BLUE, background: 'none', border: 'none', cursor: 'pointer' }}>
+        <ChevronLeft size={14} />
+        Back
+      </button>
+
+      <h3 className="text-lg font-bold text-[#2E2F32] mb-4">{dept.name} Inventory Breakdown</h3>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+        {dept.categories.map((cat) => {
+          const key = `${cat.id}-${flight.id}`;
+          const campaigns = KANGAROO_BOOKINGS[key] || [];
+          const booked = campaigns.length;
+          const screensPerCat = Math.ceil(dept.totalScreens / dept.categories.length);
+          const avail = Math.max(0, screensPerCat - booked);
+          const isFull = avail === 0;
+          
+          // Find next flight with availability (scan future flights)
+          const nextAvailableFlight = FLIGHT_WINDOWS.find((f) => {
+            if (f.id <= flight.id) return false;
+            const futureKey = `${cat.id}-${f.id}`;
+            const futureCampaigns = KANGAROO_BOOKINGS[futureKey] || [];
+            return futureCampaigns.length < screensPerCat;
+          });
+
+          // Determine category status
+          const pct = (booked / screensPerCat) * 100;
+          let catStatus;
+          if (pct >= 100) catStatus = { label: 'SOLD OUT', color: 'error' };
+          else if (pct >= 75) catStatus = { label: 'NEAR CAPACITY', color: 'warning' };
+          else if (pct >= 50) catStatus = { label: 'HIGH DEMAND', color: 'info' };
+          else catStatus = { label: 'AVAILABLE', color: 'positive' };
+
+          return (
+            <div key={cat.id} className="flex flex-col" style={surfaceCard}>
+              <div className="px-4 pt-3 pb-2">
+                <div className="text-[9px] uppercase font-bold tracking-wide" style={subtle}>Primary Product Category</div>
+                <div className="flex items-baseline justify-between mt-1">
+                  <div className="flex items-baseline gap-2">
+                    <span className="text-base font-bold text-[#2E2F32]">{cat.name}</span>
+                    {isFull && (
+                      <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded"
+                        style={{ background: '#ffeaea', color: '#c41e3a' }}>SOLD OUT</span>
+                    )}
+                  </div>
+                  {isFull && nextAvailableFlight && (
+                    <span className="text-[10px]" style={subtle}>
+                      Next available:{' '}
+                      <button
+                        type="button"
+                        onClick={() => onChangeFlight(nextAvailableFlight)}
+                        className="underline"
+                        style={{ background: 'none', border: 'none', cursor: 'pointer', color: BLUE }}
+                      >
+                        {nextAvailableFlight.label}
+                      </button>
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="px-4 flex-1">
+                {/* Active Campaigns */}
+                {campaigns.length > 0 && (
+                  <>
+                    <div className="flex items-center gap-2 mb-1.5">
+                      <div className="text-[9px] uppercase font-bold tracking-wide flex items-center gap-1" style={subtle}>
+                        <Clock size={9} />
+                        Active Campaigns
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      {campaigns.map((c) => (
+                        <div key={c.id} className="flex items-center py-2 px-3 rounded-lg" style={{ background: '#e9f1fe' }}>
+                          <div>
+                            <div className="text-xs font-bold" style={{ color: BLUE }}>{c.advertiser}</div>
+                            <div className="text-[10px] flex items-center gap-1" style={{ color: '#5a8fe6' }}>
+                              <Clock size={9} />{c.weekLabel}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </>
+                )}
+
+                {/* Available Screens */}
+                {avail > 0 && (
+                  <div className={campaigns.length > 0 ? 'mt-3' : ''}>
+                    <div className="flex items-center justify-between mb-1.5 pr-3">
+                      <div className="text-[9px] uppercase font-bold tracking-wide flex items-center gap-1" style={subtle}>
+                        <Monitor size={9} />
+                        Available Screens
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => onReserve(cat, avail)}
+                        className="text-[9px] font-bold px-2 py-0.5 rounded"
+                        style={{ background: 'transparent', color: '#1a8245', border: '1px solid #1a8245', cursor: 'pointer' }}
+                      >
+                        Reserve All
+                      </button>
+                    </div>
+                    <div className="flex flex-col gap-1.5">
+                      {Array.from({ length: avail }, (_, i) => (
+                        <div key={`avail-${i}`} className="flex items-center justify-between py-2 px-3 rounded-lg" style={{ background: '#e3f4ea' }}>
+                          <div>
+                            <div className="text-xs font-bold" style={{ color: '#1a8245' }}>Screen Slot {booked + i + 1}</div>
+                            <div className="text-[10px] flex items-center gap-1" style={{ color: '#4da672' }}>
+                              <Clock size={9} />{flight.label}
+                            </div>
+                          </div>
+                          <button
+                            type="button"
+                            onClick={() => onReserve(cat, 1)}
+                            className="text-[9px] font-bold px-2 py-0.5 rounded"
+                            style={{ background: 'transparent', color: '#1a8245', border: '1px solid #1a8245', cursor: 'pointer' }}
+                          >
+                            Reserve
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {campaigns.length === 0 && avail === 0 && (
+                  <div className="text-xs py-3 text-center" style={subtle}>No screens</div>
+                )}
+              </div>
+
+              <div className="px-4 py-3 mt-auto" style={{ borderTop: '1px solid #E3E4E5' }}>
+                <div className="flex justify-between text-xs font-bold mb-1">
+                  <span>{booked}</span>
+                  <span style={{ color: avail > 0 ? '#1a8245' : '#c97f00' }}>{avail}</span>
+                </div>
+                <div className="flex justify-between text-[9px] uppercase font-bold tracking-wide" style={subtle}>
+                  <span>Booked</span><span>Avail.</span>
+                </div>
+                <div className="mt-1.5 h-1.5 rounded-full overflow-hidden flex" style={{ background: '#E3E4E5' }}>
+                  {booked > 0 && <div style={{ width: `${(booked / screensPerCat) * 100}%`, background: BLUE, borderRadius: '9999px 0 0 9999px' }} />}
+                  {booked > 0 && avail > 0 && <div style={{ width: '3px', background: '#fff' }} />}
+                  {avail > 0 && <div style={{ width: `${(avail / screensPerCat) * 100}%`, background: '#1a8245', borderRadius: booked > 0 ? '0 9999px 9999px 0' : '9999px' }} />}
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
+
+function KangarooReserveModal({ dept, cat, flight, availableSlots, onClose }) {
+  const [advertiser, setAdvertiser] = useState('');
+  const [submitted, setSubmitted] = useState(false);
+
+  const handleSubmit = () => {
+    setSubmitted(true);
+    setTimeout(() => onClose(), 1500);
+  };
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center" style={{ background: 'rgba(0,0,0,0.5)' }}>
+      <div className="p-5 w-full max-w-sm" style={{ ...surfaceCard, borderRadius: 16 }}>
+        {submitted ? (
+          <div className="text-center py-6">
+            <div className="w-14 h-14 rounded-full mx-auto flex items-center justify-center mb-3" style={{ background: '#e3f4ea' }}>
+              <Check size={28} style={{ color: '#1a8245' }} />
+            </div>
+            <h3 className="text-lg font-bold text-[#2E2F32]">Reservation Submitted!</h3>
+            <p className="text-xs mt-1" style={subtle}>Your slot has been reserved for {cat.name}</p>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-start justify-between mb-4">
+              <div>
+                <h3 className="text-lg font-bold text-[#2E2F32]">Reserve Slot</h3>
+                <p className="text-xs mt-0.5" style={subtle}>{dept.name} → {cat.name}</p>
+              </div>
+              <button type="button" onClick={onClose} style={{ background: 'none', border: 'none', cursor: 'pointer' }}>
+                <X size={18} style={subtle} />
+              </button>
+            </div>
+
+            <div className="mb-3 p-2.5 rounded-lg" style={{ background: '#F5F5F5' }}>
+              <div className="flex items-center gap-2 text-xs">
+                <Calendar size={12} style={{ color: BLUE }} />
+                <span className="font-medium">{flight.label}</span>
+              </div>
+              <div className="text-[10px] mt-0.5" style={subtle}>
+                {flight.dates} · {availableSlots} slot{availableSlots > 1 ? 's' : ''} available
+              </div>
+            </div>
+
+            <div className="mb-4">
+              <label className="block text-xs font-medium mb-1.5 text-[#2E2F32]">Advertiser Name</label>
+              <input type="text" value={advertiser} onChange={(e) => setAdvertiser(e.target.value)}
+                placeholder="Enter advertiser name"
+                className="w-full px-3 py-2 rounded-lg text-sm outline-none" style={{ border: '1px solid #c4c5c8' }} />
+            </div>
+
+            <div className="flex gap-2">
+              <button type="button" onClick={onClose}
+                className="flex-1 py-2 rounded-full text-xs font-bold"
+                style={{ background: '#fff', border: '1px solid #c4c5c8', cursor: 'pointer' }}>Cancel</button>
+              <button type="button" onClick={handleSubmit} disabled={!advertiser.trim()}
+                className="flex-1 py-2 rounded-full text-xs font-bold text-white"
+                style={{ background: advertiser.trim() ? BLUE : '#E3E4E5', border: 'none', cursor: advertiser.trim() ? 'pointer' : 'not-allowed' }}>Reserve</button>
+            </div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function KangarooStatusBadge({ status }) {
+  const colors = {
+    positive: { bg: '#e3f4ea', text: '#1a8245' },
+    info: { bg: '#e9f1fe', text: BLUE },
+    warning: { bg: '#fff4e0', text: '#c97f00' },
+    error: { bg: '#ffeaea', text: '#c41e3a' },
+  };
+  const c = colors[status.color] || colors.info;
+  return (
+    <span className="text-[9px] font-bold uppercase px-1.5 py-0.5 rounded" style={{ background: c.bg, color: c.text }}>
+      {status.label}
+    </span>
+  );
+}
+
+function KangarooDonut({ pct }) {
+  const G = 1.5;
+  const bg = `conic-gradient(
+    white 0% ${G / 2}%,
+    ${BLUE} ${G / 2}% ${pct - G / 2}%,
+    white ${pct - G / 2}% ${pct + G / 2}%,
+    #E3E4E5 ${pct + G / 2}% ${100 - G / 2}%,
+    white ${100 - G / 2}% 100%
+  )`;
+  return (
+    <div className="relative w-28 h-28 rounded-full" style={{ background: bg }}>
+      <div className="absolute inset-3 rounded-full flex flex-col items-center justify-center" style={{ background: '#F5F5F5' }}>
+        <span className="text-2xl font-black text-[#2E2F32]">{pct}%</span>
+        <span className="text-[8px] font-bold uppercase tracking-wide text-center" style={subtle}>Booked</span>
+      </div>
+    </div>
+  );
+}
+

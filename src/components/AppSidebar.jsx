@@ -29,9 +29,10 @@ const DEFAULT_MENU_ITEMS = [
     label: 'Inventory',
     Icon: Calendar,
     submenuItems: [
-      { id: 'ad-inventory', label: 'Ad inventory' },
+      { id: 'ad-inventory-2', label: 'Ad Inventory' },
       { id: 'inventory-policy', label: 'Inventory Policy' },
       { id: 'inventory-calendar', label: 'Inventory Calendar' },
+      { id: 'inventory-calendar-2', label: 'Inventory Calendar 2' },
     ],
   },
   { id: 'asset-library', label: 'Asset Library', Icon: Users },

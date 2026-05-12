@@ -7,7 +7,8 @@ import MediaSolutionsDropdown from './components/MediaSolutionsDropdown';
 import LanguageSwitcher from './components/LanguageSwitcher';
 import SponsoredSearch from './pages/SponsoredSearch';
 import DisplayAdvertising from './pages/DisplayAdvertising';
-import AdInventory from './pages/AdInventory';
+import AdInventory2 from './pages/AdInventory2';
+import InventoryCalendar2 from './pages/InventoryCalendar2';
 import StubPage from './pages/StubPage';
 import {
   Search, Download, Upload, Lock, Clock, User, X, Calendar, ChevronDown, Plus,
@@ -347,13 +348,15 @@ export default function App() {
   const [notes, setNotes] = useState('');
 
   const [pinnedState, setPinnedState] = useState(null);
+  const [inventoryCalendar2Tab, setInventoryCalendar2Tab] = useState('in-aisle');
   const navigate = useNavigate();
   const location = useLocation();
   
   const pathToPage = {
     '/': 'inventory-calendar',
     '/inventory-calendar': 'inventory-calendar',
-    '/ad-inventory': 'ad-inventory',
+    '/inventory-calendar-2': 'inventory-calendar-2',
+    '/ad-inventory-2': 'ad-inventory-2',
     '/sponsored-search': 'sponsored-search',
     '/display-advertising': 'display-advertising',
     '/unified-reports': 'unified-reports',
@@ -365,7 +368,8 @@ export default function App() {
   const setCurrentPage = (page) => {
     const pageToPath = {
       'inventory-calendar': '/inventory-calendar',
-      'ad-inventory': '/ad-inventory',
+      'inventory-calendar-2': '/inventory-calendar-2',
+      'ad-inventory-2': '/ad-inventory-2',
       'sponsored-search': '/sponsored-search',
       'display-advertising': '/display-advertising',
       'unified-reports': '/unified-reports',
@@ -633,13 +637,14 @@ export default function App() {
           else if (id === 'campaigns' || id === 'campaigns-all' || id === 'campaigns-drafts' || id === 'campaigns-archived') setCurrentPage('sponsored-search');
           else if (id === 'reports') setCurrentPage('unified-reports');
           else if (id === 'inventory-calendar') setCurrentPage('inventory-calendar');
-          else if (id === 'ad-inventory') setCurrentPage('ad-inventory');
+          else if (id === 'inventory-calendar-2') setCurrentPage('inventory-calendar-2');
+          else if (id === 'ad-inventory-2') setCurrentPage('ad-inventory-2');
           else if (id === 'inventory-policy') setCurrentPage('inventory-calendar');
           else if (id === 'asset-library') setCurrentPage('inventory-calendar');
           else if (id === 'creative-builder') setCurrentPage('shop-builder');
         }} />
 
-        <main className="flex-1 flex flex-col min-w-0 overflow-hidden bg-[#F5F5F5]">
+        <main className="flex-1 flex flex-col min-w-0 overflow-y-auto bg-[#F5F5F5]">
           {currentPage === 'inventory-calendar' && <>
             <div className="px-6 pt-6 pb-4 shrink-0 flex items-start justify-between gap-4">
               <div>
@@ -651,9 +656,8 @@ export default function App() {
               </button>
             </div>
 
-        <div className="flex-1 flex flex-col min-h-0 mx-6 mb-6 rounded-lg border border-[#E3E4E5] shadow-[0_-1px_2px_0_rgba(0,0,0,0.10),0_1px_2px_1px_rgba(0,0,0,0.15)] overflow-hidden">
-        {/* Toolbar */}
-        <div className="bg-white border-b border-[#E3E4E5] px-5 py-3 flex items-center shrink-0 z-[300] gap-2 overflow-visible">
+        {/* Filter Bar - Full Width */}
+        <div className="px-8 py-4 flex flex-wrap gap-3 items-center justify-between bg-white border-b border-[#E3E4E5]">
           <div className="flex-1 flex items-center bg-white border border-[#BABBBE] rounded-full h-8 relative min-w-0">
             <div className="relative h-full flex items-center" ref={searchTypeRef}>
               <button onClick={() => setIsSearchTypeDropdownOpen(!isSearchTypeDropdownOpen)} className="flex items-center gap-2 px-3 py-1.5 text-sm text-[#2E2F32] border-r border-[#BABBBE] h-full rounded-l-full hover:bg-[#f1f1f2] transition-colors">
@@ -702,9 +706,10 @@ export default function App() {
             <button onMouseEnter={(e) => setActionTooltip({ tip: 'Upload CSV', rect: e.currentTarget.getBoundingClientRect() })} onMouseLeave={() => setActionTooltip(null)} className="w-8 h-8 flex items-center justify-center text-[#2E2F32] border border-[#2e2f32] rounded-full hover:bg-[#f1f1f2] transition-colors"><Upload size={16} /></button>
             <button onMouseEnter={(e) => setActionTooltip({ tip: 'Download CSV', rect: e.currentTarget.getBoundingClientRect() })} onMouseLeave={() => setActionTooltip(null)} className="w-8 h-8 flex items-center justify-center text-[#2E2F32] border border-[#2e2f32] rounded-full hover:bg-[#f1f1f2] transition-colors"><Download size={16} /></button>
           </div>
-
         </div>
 
+        {/* Calendar Container */}
+        <div className="flex flex-col mx-8 my-6 rounded-xl border border-[#E3E4E5] bg-white overflow-hidden" style={{ height: 'calc(100vh - 120px)' }}>
         {/* Legend + Summary */}
         <div className="px-5 py-3 bg-white border-b border-[#E3E4E5] flex items-center justify-between shrink-0 z-20">
           <div className="flex items-center gap-8 text-[10px] font-black text-slate-400 uppercase tracking-widest">
@@ -921,8 +926,9 @@ export default function App() {
           </>}
           {currentPage === 'sponsored-search' && <SponsoredSearch onNavigate={setCurrentPage} />}
           {currentPage === 'display-advertising' && <DisplayAdvertising onNavigate={setCurrentPage} />}
-          {currentPage === 'ad-inventory' && <AdInventory onNavigate={setCurrentPage} />}
-          {currentPage !== 'inventory-calendar' && currentPage !== 'sponsored-search' && currentPage !== 'display-advertising' && currentPage !== 'ad-inventory' && (
+          {currentPage === 'ad-inventory-2' && <AdInventory2 onNavigate={setCurrentPage} onNavigateToCalendar={(tab) => { setInventoryCalendar2Tab(tab); setCurrentPage('inventory-calendar-2'); }} />}
+          {currentPage === 'inventory-calendar-2' && <InventoryCalendar2 onNavigate={setCurrentPage} initialTab={inventoryCalendar2Tab} />}
+          {currentPage !== 'inventory-calendar' && currentPage !== 'inventory-calendar-2' && currentPage !== 'sponsored-search' && currentPage !== 'display-advertising' && currentPage !== 'ad-inventory-2' && (
             <StubPage pageId={currentPage} onNavigate={setCurrentPage} />
           )}
         </main>
